@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
+        Schema::create('taggables', function (Blueprint $table) {
+            $table->Uuid('id')->primary();
+            $table->foreignUuid('tag_id')->constrained('tag');
+            $table->morphs('taggable');
             $table->timestamps();
         });
+        DB::statement('CREATE INDEX idx_taggables_taggable ON taggables(taggable_type, taggable_id, tag_id)');
     }
 
     /**
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('taggables');
     }
 };
