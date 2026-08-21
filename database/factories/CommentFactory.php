@@ -1,0 +1,48 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Comment;
+use App\Models\Project;
+use App\Models\Task;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Comment>
+ */
+class CommentFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'commentable_type' => fake()->randomElement([Project::class, Task::class]),
+            'commentable_id' => function (array $attributes) {
+                return $attributes['commentable_type']::factory()->create()->id;
+            },
+            'user_id' => User::factory(),
+            'body' => fake()->paragraph(),
+        ];
+    }
+
+    public function forProject(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'commentable_type' => Project::class,
+            'commentable_id' => Project::factory()->create()->id,
+        ]);
+    }
+
+    public function forTask(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'commentable_type' => Task::class,
+            'commentable_id' => Task::factory()->create()->id,
+        ]);
+    }
+}

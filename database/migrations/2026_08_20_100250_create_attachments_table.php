@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,9 +15,9 @@ return new class extends Migration
         Schema::create('attachments', function (Blueprint $table) {
             $table->Uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users');
-            $table->morphs('attachable');
+            $table->uuidMorphs('attachable');
             $table->string('path');
-            $table->foreignUuid('deleted_by')->constrained('users');
+            $table->foreignUuid('deleted_by')->nullable()->constrained('users');
             $table->softDeletes();
             $table->timestamps();
         });

@@ -7,7 +7,7 @@ enum ProjectStatus: string
     case DRAFT = 'draft';
     case ACTIVE = 'active';
     case COMPLETED = 'completed';
-    case ONHOLD = 'onhold';
+    case ON_HOLD = 'onhold';
     case ARCHIVED = 'archived';
 
     public static function values(): array

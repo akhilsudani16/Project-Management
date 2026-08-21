@@ -5,6 +5,7 @@ use App\Enums\TaskStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -16,7 +17,7 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('project_id')->constrained('projects');
-            $table->foreignUuid('user_id')->constrained('users');
+            $table->foreignUuid('user_id')->nullable()->constrained('users');
             $table->foreignUuid('created_by')->constrained('users');
             $table->string('title');
             $table->text('description')->nullable();

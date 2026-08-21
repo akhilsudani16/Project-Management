@@ -1,0 +1,42 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Enums\OrganizationStatus;
+use App\Models\Organization;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Organization>
+ */
+class OrganizationFactory extends Factory
+{
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        return [
+            'name' => fake()->company(),
+            'status' => fake()->randomElement(OrganizationStatus::values()),
+            'created_by' => User::factory(),
+        ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => OrganizationStatus::ACTIVE->value,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => OrganizationStatus::INACTIVE->value,
+        ]);
+    }
+}

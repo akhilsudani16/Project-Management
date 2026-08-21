@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::create('taggables', function (Blueprint $table) {
             $table->Uuid('id')->primary();
             $table->foreignUuid('tag_id')->constrained('tag');
-            $table->morphs('taggable');
+            $table->uuidMorphs('taggable');
             $table->timestamps();
         });
         DB::statement('CREATE INDEX idx_taggables_taggable ON taggables(taggable_type, taggable_id, tag_id)');
