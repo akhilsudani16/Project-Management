@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('project_user', function (Blueprint $table) {
-            $table->Uuid('id')->primary();
+            $table->uuid('id')->primary();
             $table->foreignUuid('project_id')->constrained('projects');
             $table->foreignUuid('user_id')->constrained('users');
             $table->foreignUuid('assigned_by')->constrained('users');

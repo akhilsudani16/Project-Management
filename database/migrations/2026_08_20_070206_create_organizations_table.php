@@ -14,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('organizations', function (Blueprint $table) {
-            $table->Uuid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->enum('status', OrganizationStatus::values())->default(OrganizationStatus::ACTIVE->value);
             $table->foreignUuid('created_by')->references('id')->on('users');

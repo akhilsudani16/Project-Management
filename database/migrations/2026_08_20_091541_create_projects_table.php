@@ -14,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('projects', function (Blueprint $table) {
-            $table->Uuid('id')->primary();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('status', ProjectStatus::values())->default(ProjectStatus::DRAFT->value);

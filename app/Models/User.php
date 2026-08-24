@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,7 +19,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'role_id', 'password', 'must_change_password', 'status', 'bio', 'phone', 'job_title', 'location', 'avatar_path', 'failed_login_attempts', 'lockout_until', 'created_by'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasUuids, Notifiable, SoftDeletes;
@@ -50,6 +50,7 @@ class User extends Authenticatable
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'organization_user')
+            ->using(OrganizationUser::class)
             ->withPivot(['id', 'status', 'invited_by', 'invited_at', 'accepted_at'])
             ->withTimestamps();
     }
@@ -57,6 +58,7 @@ class User extends Authenticatable
     public function projects(): BelongsToMany
     {
         return $this->belongsToMany(Project::class, 'project_user')
+            ->using(ProjectUser::class)
             ->withPivot(['id', 'assigned_by', 'assigned_at', 'invitation_token', 'invited_by', 'invited_at', 'accepted_at'])
             ->withTimestamps();
     }

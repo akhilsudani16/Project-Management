@@ -88,4 +88,11 @@ class TaskFactory extends Factory
             'priority' => TaskPriority::URGENT->value,
         ]);
     }
+
+    public function reopened(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => TaskStatus::REOPENED->value,
+        ]);
+    }
 }

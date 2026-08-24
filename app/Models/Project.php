@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ProjectStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,10 +14,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @method static factory()
+ */
 #[Fillable(['organization_id', 'name', 'description', 'status', 'start_date', 'end_date'])]
 class Project extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, HasFactory;
 
     protected $casts = [
         'start_date' => 'date',
@@ -38,6 +42,7 @@ class Project extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_user')
+            ->using(ProjectUser::class)
             ->withPivot(['id', 'assigned_by', 'assigned_at', 'invitation_token', 'invited_by', 'invited_at', 'accepted_at'])
             ->withTimestamps();
     }

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OrganizationStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
-    use HasUuids, SoftDeletes;
+    use HasUuids, SoftDeletes, HasFactory;
 
     protected $casts = [
         'status' => OrganizationStatus::class,
@@ -31,6 +32,7 @@ class Organization extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'organization_user')
+            ->using(OrganizationUser::class)
             ->withPivot(['id', 'status', 'invited_by', 'invited_at', 'accepted_at'])
             ->withTimestamps();
     }

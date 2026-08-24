@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('taggables', function (Blueprint $table) {
-            $table->Uuid('id')->primary();
+            $table->uuid('id')->primary();
             $table->foreignUuid('tag_id')->constrained('tag');
             $table->uuidMorphs('taggable');
             $table->timestamps();

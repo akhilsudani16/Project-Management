@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'description'])]
 class Role extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, HasFactory;
 
     protected $fillable = [
         'name',
@@ -28,6 +28,7 @@ class Role extends Model
     public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class, 'permission_role')
+            ->using(PermissionRole::class)
             ->withPivot('id');
     }
 }

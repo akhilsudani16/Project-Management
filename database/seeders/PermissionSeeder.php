@@ -32,46 +32,68 @@ class PermissionSeeder extends Seeder
 
         // Super Admin gets all permissions
         $allPermissions = \App\Models\Permission::all();
-        foreach ($allPermissions as $permission) {
-            $superAdminRole->givePermissionTo($permission);
-        }
+        $superAdminRole->permissions()->sync($allPermissions->pluck('id'));
 
         // Organization Admin permissions
         $orgAdminPermissions = [
+            // Organization
             'create_organization', 'update_organization', 'view_organization', 'delete_organization',
-            'create_project', 'update_project', 'view_project', 'delete_project',
-            'create_task', 'update_task', 'view_task', 'delete_task',
+            // Project
+            'create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user',
+            // Task
+            'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
+            // User
             'create_user', 'update_user', 'view_user', 'delete_user',
+            // Comment
+            'create_comment', 'update_comment', 'delete_comment', 'moderate_comment',
+            // Tag
+            'create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag',
+            // Attachment
+            'upload_attachment', 'delete_attachment', 'view_attachment',
+            // Activity Log
+            'view_activity_log',
         ];
-        foreach ($orgAdminPermissions as $permName) {
-            $permission = \App\Models\Permission::where('name', $permName)->first();
-            if ($permission) {
-                $orgAdminRole->givePermissionTo($permission);
-            }
-        }
+        $orgAdminPermissionIds = \App\Models\Permission::whereIn('name', $orgAdminPermissions)->pluck('id');
+        $orgAdminRole->permissions()->sync($orgAdminPermissionIds);
 
         // Project Manager permissions
         $pmPermissions = [
-            'create_project', 'update_project', 'view_project',
-            'create_task', 'update_task', 'view_task', 'delete_task',
+            // Project
+            'view_project', 'update_own_project', 'assign_project_user',
+            // Task
+            'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
+            // User
             'view_user',
+            // Comment
+            'create_comment', 'update_own_comment', 'delete_own_comment', 'moderate_comment',
+            // Tag
+            'view_tag', 'attach_tag',
+            // Attachment
+            'upload_attachment', 'delete_own_attachment', 'view_attachment',
+            // Activity Log
+            'view_activity_log',
         ];
-        foreach ($pmPermissions as $permName) {
-            $permission = \App\Models\Permission::where('name', $permName)->first();
-            if ($permission) {
-                $projectManagerRole->givePermissionTo($permission);
-            }
-        }
+        $pmPermissionIds = \App\Models\Permission::whereIn('name', $pmPermissions)->pluck('id');
+        $projectManagerRole->permissions()->sync($pmPermissionIds);
 
         // Member permissions
         $memberPermissions = [
-            'view_project', 'view_task', 'view_user',
+            // Project
+            'view_own_project',
+            // Task
+            'view_own_task', 'update_own_task', 'view_assigned_task', 'update_assigned_task', 'view_team_task',
+            // User
+            'view_user',
+            // Comment
+            'create_comment', 'update_own_comment', 'delete_own_comment',
+            // Tag
+            'view_tag',
+            // Attachment
+            'upload_attachment', 'delete_own_attachment', 'view_attachment',
+            // Activity Log
+            'view_own_activity_log',
         ];
-        foreach ($memberPermissions as $permName) {
-            $permission = \App\Models\Permission::where('name', $permName)->first();
-            if ($permission) {
-                $memberRole->givePermissionTo($permission);
-            }
-        }
+        $memberPermissionIds = \App\Models\Permission::whereIn('name', $memberPermissions)->pluck('id');
+        $memberRole->permissions()->sync($memberPermissionIds);
     }
 }

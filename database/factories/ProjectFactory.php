@@ -22,7 +22,7 @@ class ProjectFactory extends Factory
     {
         return [
             'organization_id' => Organization::factory(),
-            'name' => fake()->catchPhrase(),
+            'name' => fake()->name(),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(ProjectStatus::values()),
             'start_date' => fake()->dateTimeBetween('-6 months', 'now'),

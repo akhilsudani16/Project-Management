@@ -19,7 +19,6 @@ class PermissionFactory extends Factory
     {
         return [
             'name' => fake()->unique()->word().'_'.fake()->randomElement(['create', 'read', 'update', 'delete']),
-            'description' => fake()->sentence(),
         ];
     }
 }
