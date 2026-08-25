@@ -21,13 +21,13 @@ class ProjectFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::factory(),
-            'name' => fake()->name(),
+            'name' => fake()->jobTitle(),
             'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(ProjectStatus::values()),
+            'status' => ProjectStatus::ACTIVE->value,
+            'organization_id' => Organization::inRandomOrder()->first()?->id ?? Organization::factory(),
+            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'start_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'end_date' => fake()->dateTimeBetween('now', '+6 months'),
-            'created_by' => User::factory(),
         ];
     }
 
@@ -35,6 +35,8 @@ class ProjectFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ProjectStatus::DRAFT->value,
+            'start_date' => null,
+            'end_date' => null,
         ]);
     }
 

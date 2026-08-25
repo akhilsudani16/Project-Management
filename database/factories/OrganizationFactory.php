@@ -21,8 +21,8 @@ class OrganizationFactory extends Factory
     {
         return [
             'name' => fake()->company(),
-            'status' => fake()->randomElement(OrganizationStatus::values()),
-            'created_by' => User::factory(),
+            'status' => OrganizationStatus::ACTIVE->value,
+            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
         ];
     }
 
@@ -37,6 +37,13 @@ class OrganizationFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => OrganizationStatus::INACTIVE->value,
+        ]);
+    }
+
+    public function archived(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => OrganizationStatus::ARCHIVED->value,
         ]);
     }
 }

@@ -22,11 +22,7 @@ class AttachmentFactory extends Factory
     public function definition(): array
     {
         return [
-            'attachable_type' => fake()->randomElement([Project::class, Task::class, Comment::class, User::class]),
-            'attachable_id' => function (array $attributes) {
-                return $attributes['attachable_type']::factory()->create()->id;
-            },
-            'user_id' => User::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'path' => 'attachments/'.fake()->uuid().'.'.fake()->fileExtension(),
         ];
     }
@@ -35,7 +31,6 @@ class AttachmentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'attachable_type' => Project::class,
-            'attachable_id' => Project::factory()->create()->id,
         ]);
     }
 
@@ -43,7 +38,6 @@ class AttachmentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'attachable_type' => Task::class,
-            'attachable_id' => Task::factory()->create()->id,
         ]);
     }
 
@@ -51,7 +45,6 @@ class AttachmentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'attachable_type' => Comment::class,
-            'attachable_id' => Comment::factory()->create()->id,
         ]);
     }
 
@@ -59,7 +52,6 @@ class AttachmentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'attachable_type' => User::class,
-            'attachable_id' => User::factory()->create()->id,
         ]);
     }
 }

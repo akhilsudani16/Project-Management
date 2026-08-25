@@ -6,7 +6,7 @@ enum OrganizationStatus: string
 {
     case ACTIVE = 'active';
     case INACTIVE = 'inactive';
-    case archived = 'archived';
+    case ARCHIVED = 'archived';
 
     /**
      * @return array<int, string>

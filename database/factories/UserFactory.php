@@ -2,6 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -30,10 +33,13 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role_id' => Role::query()->where('name', UserRole::MEMBER->value)->first()?->id,
+            'status' => UserStatus::ACTIVE->value,
             'phone' => fake()->phoneNumber(),
             'job_title' => fake()->jobTitle(),
             'location' => fake()->city(),
             'avatar_path' => fake()->imageUrl(200, 200, 'people'),
+            'bio' => fake()->sentence(10),
         ];
     }
 
@@ -44,6 +50,55 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+            'status' => UserStatus::PENDING->value,
+        ]);
+    }
+
+    /**
+     * Super Admin role state.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::query()->where('name', UserRole::SUPER_ADMIN->value)->first()?->id,
+            'job_title' => 'System Administrator',
+            'bio' => 'Platform administrator with full system access.',
+        ]);
+    }
+
+    /**
+     * Organization Admin role state.
+     */
+    public function organizationAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::query()->where('name', UserRole::ORGANIZATION_ADMIN->value)->first()?->id,
+            'job_title' => 'Organization Administrator',
+            'bio' => 'Managing organization operations and team members.',
+        ]);
+    }
+
+    /**
+     * Project Manager role state.
+     */
+    public function projectManager(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::query()->where('name', UserRole::PROJECT_MANAGER->value)->first()?->id,
+            'job_title' => 'Project Manager',
+            'bio' => 'Delivering projects on time and within budget.',
+        ]);
+    }
+
+    /**
+     * Member role state.
+     */
+    public function member(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => Role::query()->where('name', UserRole::MEMBER->value)->first()?->id,
+            'job_title' => fake()->randomElement(['Software Developer', 'UI/UX Designer', 'QA Engineer', 'Business Analyst']),
+            'bio' => fake()->sentence(10),
         ]);
     }
 }

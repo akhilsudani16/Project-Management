@@ -10,90 +10,99 @@ use Illuminate\Database\Seeder;
 class PermissionSeeder extends Seeder
 {
     /**
+     * Permission groups by resource type
+     */
+    private const array PERMISSION_GROUPS = [
+        'organization' => ['create_organization', 'update_organization', 'view_organization', 'delete_organization'],
+        'project' => ['create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user', 'view_own_project', 'update_own_project'],
+        'task' => ['create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task', 'view_own_task', 'update_own_task', 'view_assigned_task', 'update_assigned_task'],
+        'user' => ['create_user', 'update_user', 'view_user', 'delete_user'],
+        'comment' => ['create_comment', 'update_comment', 'delete_comment', 'moderate_comment', 'update_own_comment', 'delete_own_comment'],
+        'tag' => ['create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag'],
+        'attachment' => ['upload_attachment', 'delete_attachment', 'view_attachment', 'delete_own_attachment'],
+        'activity_log' => ['view_activity_log', 'view_own_activity_log'],
+    ];
+
+    /**
+     * Role permission mappings using groups and specific permissions
+     */
+    private const array ROLE_PERMISSIONS = [
+        UserRole::SUPER_ADMIN->value => '*',
+
+        UserRole::ORGANIZATION_ADMIN->value => [
+            'groups' => ['organization', 'user'],
+            'permissions' => [
+                'create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user',
+                'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
+                'create_comment', 'update_comment', 'delete_comment', 'moderate_comment',
+                'create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag',
+                'upload_attachment', 'delete_attachment', 'view_attachment',
+                'view_activity_log',
+            ],
+        ],
+
+        UserRole::PROJECT_MANAGER->value => [
+            'permissions' => [
+                'view_project', 'update_own_project', 'assign_project_user',
+                'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
+                'view_user',
+                'create_comment', 'update_own_comment', 'delete_own_comment', 'moderate_comment',
+                'view_tag', 'attach_tag',
+                'upload_attachment', 'delete_own_attachment', 'view_attachment',
+                'view_activity_log',
+            ],
+        ],
+
+        UserRole::MEMBER->value => [
+            'permissions' => [
+                'view_own_project',
+                'view_own_task', 'update_own_task', 'view_assigned_task', 'update_assigned_task', 'view_team_task',
+                'view_user',
+                'create_comment', 'update_own_comment', 'delete_own_comment',
+                'view_tag',
+                'upload_attachment', 'delete_own_attachment', 'view_attachment',
+                'view_own_activity_log',
+            ],
+        ],
+    ];
+
+    /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Create permissions from the Permission enum
+        // Create all permissions from enum
         foreach (Permission::cases() as $permission) {
             \App\Models\Permission::firstOrCreate(['name' => $permission->value]);
         }
 
         // Assign permissions to roles
-        $this->assignPermissionsToRoles();
-    }
+        foreach (self::ROLE_PERMISSIONS as $roleName => $config) {
+            $role = Role::where('name', $roleName)->first();
 
-    private function assignPermissionsToRoles(): void
-    {
-        $superAdminRole = Role::where('name', UserRole::SUPER_ADMIN->value)->first();
-        $orgAdminRole = Role::where('name', UserRole::ORGANIZATION_ADMIN->value)->first();
-        $projectManagerRole = Role::where('name', UserRole::PROJECT_MANAGER->value)->first();
-        $memberRole = Role::where('name', UserRole::MEMBER->value)->first();
+            if ($config === '*') {
+                // Super Admin gets all permissions
+                $role->permissions()->sync(\App\Models\Permission::all()->pluck('id'));
+            } else {
+                $permissions = [];
 
-        // Super Admin gets all permissions
-        $allPermissions = \App\Models\Permission::all();
-        $superAdminRole->permissions()->sync($allPermissions->pluck('id'));
+                // Add permissions from groups
+                if (isset($config['groups'])) {
+                    foreach ($config['groups'] as $group) {
+                        $permissions = array_merge($permissions, self::PERMISSION_GROUPS[$group]);
+                    }
+                }
 
-        // Organization Admin permissions
-        $orgAdminPermissions = [
-            // Organization
-            'create_organization', 'update_organization', 'view_organization', 'delete_organization',
-            // Project
-            'create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user',
-            // Task
-            'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
-            // User
-            'create_user', 'update_user', 'view_user', 'delete_user',
-            // Comment
-            'create_comment', 'update_comment', 'delete_comment', 'moderate_comment',
-            // Tag
-            'create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag',
-            // Attachment
-            'upload_attachment', 'delete_attachment', 'view_attachment',
-            // Activity Log
-            'view_activity_log',
-        ];
-        $orgAdminPermissionIds = \App\Models\Permission::whereIn('name', $orgAdminPermissions)->pluck('id');
-        $orgAdminRole->permissions()->sync($orgAdminPermissionIds);
+                // Add specific permissions
+                if (isset($config['permissions'])) {
+                    $permissions = array_merge($permissions, $config['permissions']);
+                }
 
-        // Project Manager permissions
-        $pmPermissions = [
-            // Project
-            'view_project', 'update_own_project', 'assign_project_user',
-            // Task
-            'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
-            // User
-            'view_user',
-            // Comment
-            'create_comment', 'update_own_comment', 'delete_own_comment', 'moderate_comment',
-            // Tag
-            'view_tag', 'attach_tag',
-            // Attachment
-            'upload_attachment', 'delete_own_attachment', 'view_attachment',
-            // Activity Log
-            'view_activity_log',
-        ];
-        $pmPermissionIds = \App\Models\Permission::whereIn('name', $pmPermissions)->pluck('id');
-        $projectManagerRole->permissions()->sync($pmPermissionIds);
-
-        // Member permissions
-        $memberPermissions = [
-            // Project
-            'view_own_project',
-            // Task
-            'view_own_task', 'update_own_task', 'view_assigned_task', 'update_assigned_task', 'view_team_task',
-            // User
-            'view_user',
-            // Comment
-            'create_comment', 'update_own_comment', 'delete_own_comment',
-            // Tag
-            'view_tag',
-            // Attachment
-            'upload_attachment', 'delete_own_attachment', 'view_attachment',
-            // Activity Log
-            'view_own_activity_log',
-        ];
-        $memberPermissionIds = \App\Models\Permission::whereIn('name', $memberPermissions)->pluck('id');
-        $memberRole->permissions()->sync($memberPermissionIds);
+                // Sync permissions to role
+                $role->permissions()->sync(
+                    \App\Models\Permission::whereIn('name', array_unique($permissions))->pluck('id')
+                );
+            }
+        }
     }
 }

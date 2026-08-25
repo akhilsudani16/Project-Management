@@ -22,13 +22,13 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_id' => Project::factory(),
-            'user_id' => User::factory(),
-            'created_by' => User::factory(),
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(TaskStatus::values()),
-            'priority' => fake()->randomElement(TaskPriority::values()),
+            'status' => TaskStatus::TODO->value,
+            'priority' => TaskPriority::MEDIUM->value,
+            'project_id' => Project::inRandomOrder()->first()?->id ?? Project::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id,
+            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'due_date' => fake()->dateTimeBetween('now', '+3 months'),
         ];
     }
@@ -57,7 +57,7 @@ class TaskFactory extends Factory
     public function completed(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => TaskStatus::COMPLETED->value,
+            'status' => TaskStatus::DONE->value,
         ]);
     }
 
@@ -89,10 +89,10 @@ class TaskFactory extends Factory
         ]);
     }
 
-    public function reopened(): static
+    public function review(): static
     {
         return $this->state(fn (array $attributes) => [
-            'status' => TaskStatus::REOPENED->value,
+            'status' => TaskStatus::REVIEW->value,
         ]);
     }
 }

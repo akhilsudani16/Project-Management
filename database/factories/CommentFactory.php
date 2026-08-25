@@ -21,11 +21,7 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         return [
-            'commentable_type' => fake()->randomElement([Project::class, Task::class]),
-            'commentable_id' => function (array $attributes) {
-                return $attributes['commentable_type']::factory()->create()->id;
-            },
-            'user_id' => User::factory(),
+            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'body' => fake()->paragraph(),
         ];
     }
@@ -34,7 +30,6 @@ class CommentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'commentable_type' => Project::class,
-            'commentable_id' => Project::factory()->create()->id,
         ]);
     }
 
@@ -42,7 +37,6 @@ class CommentFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'commentable_type' => Task::class,
-            'commentable_id' => Task::factory()->create()->id,
         ]);
     }
 }
