@@ -29,14 +29,18 @@ return new class extends Migration
             $table->integer('failed_login_attempts')->default(0);
             $table->timestamp('lockout_until')->nullable();
             $table->timestamp('email_verified_at')->nullable();
+
+            $table->uuid('created_by')->nullable();
+            $table->uuid('deleted_by')->nullable();
+
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
         });
 
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignUuid('created_by')->nullable()->constrained('users');
-            $table->foreignUuid('deleted_by')->nullable()->constrained('users');
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('deleted_by')->references('id')->on('users');
         });
 
         DB::statement('CREATE INDEX idx_users_email ON users(email) WHERE deleted_at IS NULL');
@@ -67,5 +71,11 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['deleted_by']);
+        });
     }
 };
