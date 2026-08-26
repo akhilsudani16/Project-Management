@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['attachable_type', 'attachable_id', 'user_id', 'path'])]
 class Attachment extends Model
 {
-    use HasUuids, SoftDeletes, HasFactory;
+    use HasFactory, HasUuids, SoftDeletes;
 
     public function attachable(): MorphTo
     {

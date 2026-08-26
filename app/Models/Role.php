@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['name', 'description'])]
 class Role extends Model
 {
-    use HasFactory, HasUuids, HasFactory;
+    use HasFactory, HasFactory, HasUuids;
 
     protected $fillable = [
         'name',

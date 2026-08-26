@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['commentable_type', 'commentable_id', 'user_id', 'body', 'deleted_by'])]
 class Comment extends Model
 {
-    use HasUuids, SoftDeletes, HasFactory;
+    use HasFactory, HasUuids, SoftDeletes;
 
     public function commentable(): MorphTo
     {

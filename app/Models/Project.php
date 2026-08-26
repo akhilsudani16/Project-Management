@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['organization_id', 'name', 'description', 'status', 'start_date', 'end_date'])]
 class Project extends Model
 {
-    use HasUuids, SoftDeletes, HasFactory;
+    use HasFactory, HasUuids, SoftDeletes;
 
     protected $casts = [
         'start_date' => 'date',

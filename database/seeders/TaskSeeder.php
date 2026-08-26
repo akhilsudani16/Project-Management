@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Task;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Seeder;
 

@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\OrganizationStatus;
 use App\Models\Organization;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

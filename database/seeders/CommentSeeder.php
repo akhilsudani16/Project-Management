@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
 use Database\Factories\CommentFactory;

@@ -41,6 +41,7 @@ class TaskFactory extends Factory
             'deleted_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
+
     public function unassigned(): static
     {
         return $this->state(fn (array $attributes) => [

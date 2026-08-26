@@ -12,6 +12,7 @@ enum TaskStatus: string
 
     case COMPLETED = 'completed';
     case REOPENED = 'reopened';
+
     public static function values(): array
     {
         return array_column(self::cases(), 'value');

@@ -96,12 +96,12 @@ class PermissionSeeder extends Seeder
                 $permissions = [];
 
                 // Add permissions from groups
-                    foreach ($config['groups'] as $group) {
-                        $permissions = array_merge($permissions, self::PERMISSION_GROUPS[$group]);
+                foreach ($config['groups'] as $group) {
+                    $permissions = array_merge($permissions, self::PERMISSION_GROUPS[$group]);
                 }
 
                 // Add specific permissions
-                    $permissions = array_merge($permissions, $config['permissions']);
+                $permissions = array_merge($permissions, $config['permissions']);
 
                 // Sync permissions to role
                 $role->permissions()->sync(
