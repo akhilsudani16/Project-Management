@@ -17,7 +17,7 @@ class PermissionSeeder extends Seeder
         'project' => ['create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user', 'view_own_project', 'update_own_project'],
         'task' => ['create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task', 'view_own_task', 'update_own_task', 'view_assigned_task', 'update_assigned_task'],
         'user' => ['create_user', 'update_user', 'view_user', 'delete_user'],
-        'comment' => ['create_comment', 'update_comment', 'delete_comment', 'moderate_comment', 'update_own_comment', 'delete_own_comment'],
+        'comment' => ['create_comment', 'update_comment', 'delete_comment', 'update_own_comment', 'delete_own_comment'],
         'tag' => ['create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag'],
         'attachment' => ['upload_attachment', 'delete_attachment', 'view_attachment', 'delete_own_attachment'],
         'activity_log' => ['view_activity_log', 'view_own_activity_log'],
@@ -30,11 +30,10 @@ class PermissionSeeder extends Seeder
         UserRole::SUPER_ADMIN->value => '*',
 
         UserRole::ORGANIZATION_ADMIN->value => [
-            'groups' => ['organization', 'user'],
             'permissions' => [
                 'create_project', 'update_project', 'view_project', 'delete_project', 'assign_project_user', 'remove_project_user',
                 'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
-                'create_comment', 'update_comment', 'delete_comment', 'moderate_comment',
+                'create_comment', 'update_comment', 'delete_comment',
                 'create_tag', 'update_tag', 'delete_tag', 'view_tag', 'attach_tag',
                 'upload_attachment', 'delete_attachment', 'view_attachment',
                 'view_activity_log',
@@ -46,7 +45,7 @@ class PermissionSeeder extends Seeder
                 'view_project', 'update_own_project', 'assign_project_user',
                 'create_task', 'update_task', 'view_task', 'delete_task', 'assign_task', 'view_team_task',
                 'view_user',
-                'create_comment', 'update_own_comment', 'delete_own_comment', 'moderate_comment',
+                'create_comment', 'update_own_comment', 'delete_own_comment',
                 'view_tag', 'attach_tag',
                 'upload_attachment', 'delete_own_attachment', 'view_attachment',
                 'view_activity_log',

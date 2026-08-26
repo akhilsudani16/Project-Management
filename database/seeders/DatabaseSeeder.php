@@ -33,25 +33,6 @@ class DatabaseSeeder extends Seeder
             AttachmentSeeder::class,
             ActivityLogSeeder::class,
         ]);
-
-        $this->command->newLine();
         $this->command->info(' Database seeding completed successfully!');
-        $this->command->newLine();
-        $this->command->info('Test Credentials:');
-        $this->command->table(
-            ['Role', 'Email', 'Password'],
-            [
-                ['Super Admin', 'superadmin@example.com', 'password'],
-                ['Organization Admin', 'alice@example.com', 'password'],
-                ['Organization Admin', 'bob@example.com', 'password'],
-                ['Project Manager', 'carol@example.com', 'password'],
-                ['Project Manager', 'david@example.com', 'password'],
-                ['Member', 'emma@example.com', 'password'],
-                ['Member', 'frank@example.com', 'password'],
-                ['Member', 'grace@example.com', 'password'],
-                ['Member (Unverified)', 'henry@example.com', 'password'],
-                ['Member (Must Change Password)', 'isabella@example.com', 'TempPassword123!'],
-            ]
-        );
     }
 }

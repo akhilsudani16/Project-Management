@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\OrganizationStatus;
 use App\Models\Organization;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,7 +23,7 @@ class OrganizationFactory extends Factory
         return [
             'name' => fake()->company(),
             'status' => OrganizationStatus::ACTIVE->value,
-            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
         ];
     }
 

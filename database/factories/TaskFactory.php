@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -24,15 +25,22 @@ class TaskFactory extends Factory
         return [
             'title' => fake()->sentence(),
             'description' => fake()->paragraph(),
-            'status' => TaskStatus::TODO->value,
-            'priority' => TaskPriority::MEDIUM->value,
+            'status' => fake()->randomElement(TaskStatus::values()),
+            'priority' => fake()->randomElement(TaskPriority::values()),
             'project_id' => Project::inRandomOrder()->first()?->id ?? Project::factory(),
-            'user_id' => User::inRandomOrder()->first()?->id,
-            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'user_id' => User::query()->where('role_id', Role::query()->where('name', 'member')->first()?->id)->inRandomOrder()->first()?->id,
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'project_manager')->first()?->id)->inRandomOrder()->first()?->id,
             'due_date' => fake()->dateTimeBetween('now', '+3 months'),
         ];
     }
 
+    public function deleted(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'deleted_at' => now(),
+            'deleted_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->id)->inRandomOrder()->first()?->id,
+        ]);
+    }
     public function unassigned(): static
     {
         return $this->state(fn (array $attributes) => [

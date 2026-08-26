@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Enums\ProjectStatus;
 use App\Models\Organization;
 use App\Models\Project;
-use App\Models\User;
+use App\Models\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,7 +25,7 @@ class ProjectFactory extends Factory
             'description' => fake()->paragraph(),
             'status' => ProjectStatus::ACTIVE->value,
             'organization_id' => Organization::inRandomOrder()->first()?->id ?? Organization::factory(),
-            'created_by' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
             'start_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'end_date' => fake()->dateTimeBetween('now', '+6 months'),
         ];
@@ -65,6 +65,15 @@ class ProjectFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => ProjectStatus::ARCHIVED->value,
+        ]);
+    }
+
+    public function deleted(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => ProjectStatus::DELETED->value,
+            'deleted_at' => now(),
+            'deleted_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
         ]);
     }
 }

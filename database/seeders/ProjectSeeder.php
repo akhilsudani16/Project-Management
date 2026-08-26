@@ -18,5 +18,6 @@ class ProjectSeeder extends Seeder
         Project::factory()->count(3)->onHold()->create();
         Project::factory()->count(4)->completed()->create();
         Project::factory()->count(2)->archived()->create();
+        Project::factory()->count(1)->deleted()->create();
     }
 }

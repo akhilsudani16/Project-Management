@@ -40,6 +40,7 @@ class UserFactory extends Factory
             'location' => fake()->city(),
             'avatar_path' => fake()->imageUrl(200, 200, 'people'),
             'bio' => fake()->sentence(10),
+            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
         ];
     }
 
@@ -99,6 +100,22 @@ class UserFactory extends Factory
             'role_id' => Role::query()->where('name', UserRole::MEMBER->value)->first()?->id,
             'job_title' => fake()->randomElement(['Software Developer', 'UI/UX Designer', 'QA Engineer', 'Business Analyst']),
             'bio' => fake()->sentence(10),
+        ]);
+    }
+
+    public function deleted(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'deleted_at' => now(),
+            'deleted_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
+        ]);
+    }
+
+    public function mustChangePassword(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'password' => bcrypt('TempPassword123!'),
+            'must_change_password' => true,
         ]);
     }
 }
