@@ -23,7 +23,7 @@ class OrganizationFactory extends Factory
         return [
             'name' => fake()->company(),
             'status' => OrganizationStatus::ACTIVE->value,
-            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
+            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->getKey(),
         ];
     }
 

@@ -27,9 +27,9 @@ class TaskFactory extends Factory
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(TaskStatus::values()),
             'priority' => fake()->randomElement(TaskPriority::values()),
-            'project_id' => Project::inRandomOrder()->first()?->id ?? Project::factory(),
-            'user_id' => User::query()->where('role_id', Role::query()->where('name', 'member')->first()?->id)->inRandomOrder()->first()?->id,
-            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'project_manager')->first()?->id)->inRandomOrder()->first()?->id,
+            'project_id' => Project::inRandomOrder()->first()?->getKey() ?? ProjectFactory::new(),
+            'user_id' => User::query()->where('role_id', Role::query()->where('name', 'member')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'project_manager')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
             'due_date' => fake()->dateTimeBetween('now', '+3 months'),
         ];
     }
@@ -38,7 +38,7 @@ class TaskFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'deleted_at' => now(),
-            'deleted_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->id)->inRandomOrder()->first()?->id,
+            'deleted_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
     public function unassigned(): static

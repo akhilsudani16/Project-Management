@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Project;
+use Database\Factories\ProjectFactory;
 use Illuminate\Database\Seeder;
 
 class ProjectSeeder extends Seeder
@@ -12,12 +12,12 @@ class ProjectSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create projects with different statuses
-        Project::factory()->count(15)->active()->create();
-        Project::factory()->count(5)->draft()->create();
-        Project::factory()->count(3)->onHold()->create();
-        Project::factory()->count(4)->completed()->create();
-        Project::factory()->count(2)->archived()->create();
-        Project::factory()->count(1)->deleted()->create();
+        // Create projects with different statuses using explicit factory class instantiation
+        ProjectFactory::new()->count(15)->active()->create();
+        ProjectFactory::new()->count(5)->draft()->create();
+        ProjectFactory::new()->count(3)->onHold()->create();
+        ProjectFactory::new()->count(4)->completed()->create();
+        ProjectFactory::new()->count(2)->archived()->create();
+        ProjectFactory::new()->count(1)->deleted()->create();
     }
 }

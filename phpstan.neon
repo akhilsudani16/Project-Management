@@ -13,7 +13,5 @@ parameters:
         - bootstrap/cache
         - public
         - tests
-        - database/factories
-        - database/seeders
 
     level: 5

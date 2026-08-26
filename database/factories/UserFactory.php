@@ -40,7 +40,7 @@ class UserFactory extends Factory
             'location' => fake()->city(),
             'avatar_path' => fake()->imageUrl(200, 200, 'people'),
             'bio' => fake()->sentence(10),
-            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
+            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->getKey(),
         ];
     }
 
@@ -107,7 +107,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'deleted_at' => now(),
-            'deleted_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->id,
+            'deleted_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->getKey(),
         ]);
     }
 
