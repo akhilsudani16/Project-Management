@@ -58,4 +58,108 @@ enum Permission: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    public static function organizationPermissions(): array
+    {
+        return [
+            self::CREATE_ORGANIZATION,
+            self::UPDATE_ORGANIZATION,
+            self::VIEW_ORGANIZATION,
+            self::DELETE_ORGANIZATION,
+        ];
+    }
+
+    public static function projectPermissions(): array
+    {
+        return [
+            self::CREATE_PROJECT,
+            self::UPDATE_PROJECT,
+            self::VIEW_PROJECT,
+            self::DELETE_PROJECT,
+            self::ASSIGN_PROJECT_USER,
+            self::REMOVE_PROJECT_USER,
+            self::VIEW_OWN_PROJECT,
+            self::UPDATE_OWN_PROJECT,
+        ];
+    }
+
+    public static function taskPermissions(): array
+    {
+        return [
+            self::CREATE_TASK,
+            self::UPDATE_TASK,
+            self::VIEW_TASK,
+            self::DELETE_TASK,
+            self::ASSIGN_TASK,
+            self::VIEW_TEAM_TASK,
+            self::VIEW_OWN_TASK,
+            self::UPDATE_OWN_TASK,
+            self::VIEW_ASSIGNED_TASK,
+            self::UPDATE_ASSIGNED_TASK,
+        ];
+    }
+
+    public static function userPermissions(): array
+    {
+        return [
+            self::CREATE_USER,
+            self::UPDATE_USER,
+            self::VIEW_USER,
+            self::DELETE_USER,
+        ];
+    }
+
+    public static function commentPermissions(): array
+    {
+        return [
+            self::CREATE_COMMENT,
+            self::UPDATE_COMMENT,
+            self::DELETE_COMMENT,
+            self::UPDATE_OWN_COMMENT,
+            self::DELETE_OWN_COMMENT,
+        ];
+    }
+
+    public static function tagPermissions(): array
+    {
+        return [
+            self::CREATE_TAG,
+            self::UPDATE_TAG,
+            self::DELETE_TAG,
+            self::VIEW_TAG,
+            self::ATTACH_TAG,
+        ];
+    }
+
+    public static function attachmentPermissions(): array
+    {
+        return [
+            self::UPLOAD_ATTACHMENT,
+            self::DELETE_ATTACHMENT,
+            self::VIEW_ATTACHMENT,
+            self::DELETE_OWN_ATTACHMENT,
+        ];
+    }
+
+    public static function activityLogPermissions(): array
+    {
+        return [
+            self::VIEW_ACTIVITY_LOG,
+            self::VIEW_OWN_ACTIVITY_LOG,
+        ];
+    }
+
+    public static function allPermissions(): array
+    {
+        return array_merge(
+            self::organizationPermissions(),
+            self::projectPermissions(),
+            self::taskPermissions(),
+            self::userPermissions(),
+            self::commentPermissions(),
+            self::tagPermissions(),
+            self::attachmentPermissions(),
+            self::activityLogPermissions()
+        );
+    }
 }
