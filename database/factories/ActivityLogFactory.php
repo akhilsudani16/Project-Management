@@ -2,7 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\ActivityLog as ActivityLogEnum;
 use App\Models\ActivityLog;
+use App\Models\Organization;
+use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,23 +23,38 @@ class ActivityLogFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
-            'action' => fake()->randomElement([
-                'login',
-                'logout',
-                'created_project',
-                'updated_project',
-                'deleted_project',
-                'created_task',
-                'updated_task',
-                'completed_task',
-                'commented',
-                'uploaded_attachment',
-            ]),
-            'target_type' => fake()->randomElement(['Project', 'Task', 'User', 'Organization']),
-            'target_id' => fake()->uuid(),
+            'user_id' => User::inRandomOrder()->first()->id ?? User::factory()->create()->getKey(),
+            'action' => fake()->randomElement(ActivityLogEnum::values()),
             'ip_address' => fake()->ipv4(),
             'user_agent' => fake()->userAgent(),
         ];
+    }
+
+    public function forProject(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'targetable_type' => Project::class,
+        ]);
+    }
+
+    public function forTask(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'targetable_type' => Task::class,
+        ]);
+    }
+
+    public function forUser(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'targetable_type' => User::class,
+        ]);
+    }
+
+    public function forOrganization(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'targetable_type' => Organization::class,
+        ]);
     }
 }

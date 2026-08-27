@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\TaskFactory;
+use App\Models\Task;
 use Illuminate\Database\Seeder;
 
 class TaskSeeder extends Seeder
@@ -13,8 +13,8 @@ class TaskSeeder extends Seeder
     public function run(): void
     {
         // Create random tasks using explicit factory class instantiation
-        TaskFactory::new()->count(50)->create();
-        TaskFactory::new()->count(1)->deleted()->create();
-        TaskFactory::new()->count(49)->create();
+        Task::factory()->count(50)->create();
+        Task::factory()->count(1)->deleted()->create();
+        Task::factory()->count(49)->create();
     }
 }

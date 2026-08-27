@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ProjectStatus;
+use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,12 +15,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @method static factory()
- */
 #[Fillable(['organization_id', 'name', 'description', 'status', 'start_date', 'end_date'])]
 class Project extends Model
 {
+    /** @use HasFactory<ProjectFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $casts = [

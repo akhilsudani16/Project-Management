@@ -19,7 +19,7 @@ class TagFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::inRandomOrder()->first()->id ?? Organization::factory(),
+            'organization_id' => Organization::inRandomOrder()->first()->id ?? Organization::factory()->create()->getKey(),
             'name' => fake()->unique()->word(),
         ];
     }

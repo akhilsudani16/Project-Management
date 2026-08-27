@@ -27,7 +27,7 @@ class TaskFactory extends Factory
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(TaskStatus::values()),
             'priority' => fake()->randomElement(TaskPriority::values()),
-            'project_id' => Project::inRandomOrder()->first()?->getKey() ?? ProjectFactory::new(),
+            'project_id' => Project::inRandomOrder()->first()?->getKey() ?? Project::factory()->create()->getKey(),
             'user_id' => User::query()->where('role_id', Role::query()->where('name', 'member')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
             'created_by' => User::query()->where('role_id', Role::query()->where('name', 'project_manager')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
             'due_date' => fake()->dateTimeBetween('now', '+3 months'),

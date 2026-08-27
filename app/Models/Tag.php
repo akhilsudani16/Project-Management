@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\TagFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['organization_id', 'name', 'deleted_by'])]
 class Tag extends Model
 {
+    /** @use HasFactory<TagFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $table = 'tag';

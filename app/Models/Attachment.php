@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\AttachmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable(['attachable_type', 'attachable_id', 'user_id', 'path'])]
 class Attachment extends Model
 {
+    /** @use HasFactory<AttachmentFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     public function attachable(): MorphTo

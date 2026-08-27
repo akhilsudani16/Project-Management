@@ -24,7 +24,7 @@ class ProjectFactory extends Factory
             'name' => fake()->jobTitle(),
             'description' => fake()->paragraph(),
             'status' => ProjectStatus::ACTIVE->value,
-            'organization_id' => Organization::inRandomOrder()->first()->id ?? Organization::factory(),
+            'organization_id' => Organization::inRandomOrder()->first()->id ?? Organization::factory()->create()->getKey(),
             'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->getKey(),
             'start_date' => fake()->dateTimeBetween('-6 months', 'now'),
             'end_date' => fake()->dateTimeBetween('now', '+6 months'),

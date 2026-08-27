@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\ActivityLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['user_id', 'action', 'target_type', 'target_id', 'ip_address', 'user_agent'])]
 class ActivityLog extends Model
 {
+    /** @use HasFactory<ActivityLogFactory> */
     use HasFactory, HasUuids;
 
     // Relationships

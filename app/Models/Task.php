@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,13 +14,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @method static factory()
- */
 #[Fillable(['project_id', 'user_id', 'created_by', 'title', 'description', 'status', 'priority', 'due_date', 'deleted_by'])]
 
 class Task extends Model
 {
+    /** @use HasFactory<TaskFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $casts = [

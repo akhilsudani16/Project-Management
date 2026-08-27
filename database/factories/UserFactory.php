@@ -40,7 +40,6 @@ class UserFactory extends Factory
             'location' => fake()->city(),
             'avatar_path' => fake()->imageUrl(200, 200, 'people'),
             'bio' => fake()->sentence(10),
-            'created_by' => Role::query()->where('name', 'super_admin')->first()?->users()->first()?->getKey(),
         ];
     }
 
@@ -64,6 +63,7 @@ class UserFactory extends Factory
             'role_id' => Role::query()->where('name', UserRole::SUPER_ADMIN->value)->first()?->id,
             'job_title' => 'System Administrator',
             'bio' => 'Platform administrator with full system access.',
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
 
@@ -76,6 +76,7 @@ class UserFactory extends Factory
             'role_id' => Role::query()->where('name', UserRole::ORGANIZATION_ADMIN->value)->first()?->id,
             'job_title' => 'Organization Administrator',
             'bio' => 'Managing organization operations and team members.',
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'super_admin')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
 
@@ -88,6 +89,7 @@ class UserFactory extends Factory
             'role_id' => Role::query()->where('name', UserRole::PROJECT_MANAGER->value)->first()?->id,
             'job_title' => 'Project Manager',
             'bio' => 'Delivering projects on time and within budget.',
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'organization_admin')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
 
@@ -100,6 +102,7 @@ class UserFactory extends Factory
             'role_id' => Role::query()->where('name', UserRole::MEMBER->value)->first()?->id,
             'job_title' => fake()->randomElement(['Software Developer', 'UI/UX Designer', 'QA Engineer', 'Business Analyst']),
             'bio' => fake()->sentence(10),
+            'created_by' => User::query()->where('role_id', Role::query()->where('name', 'project_manager')->first()?->getKey())->inRandomOrder()->first()?->getKey(),
         ]);
     }
 

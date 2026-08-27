@@ -4,6 +4,8 @@ includes:
 parameters:
     paths:
         - app
+        - config
+        - bootstrap
         - routes
         - database
     excludePaths:

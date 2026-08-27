@@ -26,21 +26,21 @@ class OrganizationFactory extends Factory
         ];
     }
 
-    public function active(): static
+    public function active(): self
     {
         return $this->state(fn (array $attributes) => [
             'status' => OrganizationStatus::ACTIVE->value,
         ]);
     }
 
-    public function inactive(): static
+    public function inactive(): self
     {
         return $this->state(fn (array $attributes) => [
             'status' => OrganizationStatus::INACTIVE->value,
         ]);
     }
 
-    public function archived(): static
+    public function archived(): self
     {
         return $this->state(fn (array $attributes) => [
             'status' => OrganizationStatus::ARCHIVED->value,

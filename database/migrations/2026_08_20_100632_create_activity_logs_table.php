@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users');
             $table->string('action');
-            $table->uuidMorphs('target');
+            $table->uuidMorphs('targetable');
             $table->ipAddress();
             $table->text('user_agent');
             $table->timestamps();

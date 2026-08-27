@@ -7,6 +7,7 @@ enum Permission: string
     case CREATE_ORGANIZATION = 'create_organization';
     case UPDATE_ORGANIZATION = 'update_organization';
     case VIEW_ORGANIZATION = 'view_organization';
+    case ARCHIVE_ORGANIZATION = 'archive_organization';
     case DELETE_ORGANIZATION = 'delete_organization';
 
     case CREATE_PROJECT = 'create_project';
@@ -15,19 +16,12 @@ enum Permission: string
     case DELETE_PROJECT = 'delete_project';
     case ASSIGN_PROJECT_USER = 'assign_project_user';
     case REMOVE_PROJECT_USER = 'remove_project_user';
-    case VIEW_OWN_PROJECT = 'view_own_project';
-    case UPDATE_OWN_PROJECT = 'update_own_project';
 
     case CREATE_TASK = 'create_task';
     case UPDATE_TASK = 'update_task';
     case VIEW_TASK = 'view_task';
     case DELETE_TASK = 'delete_task';
     case ASSIGN_TASK = 'assign_task';
-    case VIEW_TEAM_TASK = 'view_team_task';
-    case VIEW_OWN_TASK = 'view_own_task';
-    case UPDATE_OWN_TASK = 'update_own_task';
-    case VIEW_ASSIGNED_TASK = 'view_assigned_task';
-    case UPDATE_ASSIGNED_TASK = 'update_assigned_task';
 
     case CREATE_USER = 'create_user';
     case UPDATE_USER = 'update_user';
@@ -37,8 +31,6 @@ enum Permission: string
     case CREATE_COMMENT = 'create_comment';
     case UPDATE_COMMENT = 'update_comment';
     case DELETE_COMMENT = 'delete_comment';
-    case UPDATE_OWN_COMMENT = 'update_own_comment';
-    case DELETE_OWN_COMMENT = 'delete_own_comment';
 
     case CREATE_TAG = 'create_tag';
     case UPDATE_TAG = 'update_tag';
@@ -49,117 +41,104 @@ enum Permission: string
     case UPLOAD_ATTACHMENT = 'upload_attachment';
     case DELETE_ATTACHMENT = 'delete_attachment';
     case VIEW_ATTACHMENT = 'view_attachment';
-    case DELETE_OWN_ATTACHMENT = 'delete_own_attachment';
 
     case VIEW_ACTIVITY_LOG = 'view_activity_log';
-    case VIEW_OWN_ACTIVITY_LOG = 'view_own_activity_log';
+
+    case INVITE_PROJECT_MANAGER = 'invite_project_manager';
+    case INVITE_MEMBER = 'invite_member';
+    case INVITE_SUPER_ADMIN = 'invite_super_admin';
+    case INVITE_ORGANIZATION_ADMIN = 'invite_organization_admin';
+    case ARCHIVE_PROJECT = 'archive_project';
+    case RESTORE_PROJECT = 'restore_project';
+    case UPDATE_ASSIGNED_TASK = 'update_assigned_task';
+    case VIEW_ASSIGNED_TASK = 'view_assigned_task';
+    case VIEW_PROFILE = 'view_profile';
+    case UPDATE_PROFILE = 'update_profile';
 
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
     }
 
-    public static function organizationPermissions(): array
+    public static function organizationAdminPermissions(): array
     {
         return [
-            self::CREATE_ORGANIZATION,
-            self::UPDATE_ORGANIZATION,
             self::VIEW_ORGANIZATION,
-            self::DELETE_ORGANIZATION,
-        ];
-    }
-
-    public static function projectPermissions(): array
-    {
-        return [
+            self::UPDATE_ORGANIZATION,
+            self::INVITE_PROJECT_MANAGER,
+            self::INVITE_MEMBER,
             self::CREATE_PROJECT,
             self::UPDATE_PROJECT,
             self::VIEW_PROJECT,
             self::DELETE_PROJECT,
             self::ASSIGN_PROJECT_USER,
             self::REMOVE_PROJECT_USER,
-            self::VIEW_OWN_PROJECT,
-            self::UPDATE_OWN_PROJECT,
-        ];
-    }
-
-    public static function taskPermissions(): array
-    {
-        return [
             self::CREATE_TASK,
             self::UPDATE_TASK,
             self::VIEW_TASK,
             self::DELETE_TASK,
             self::ASSIGN_TASK,
-            self::VIEW_TEAM_TASK,
-            self::VIEW_OWN_TASK,
-            self::UPDATE_OWN_TASK,
-            self::VIEW_ASSIGNED_TASK,
-            self::UPDATE_ASSIGNED_TASK,
-        ];
-    }
-
-    public static function userPermissions(): array
-    {
-        return [
+            self::VIEW_USER,
             self::CREATE_USER,
             self::UPDATE_USER,
-            self::VIEW_USER,
-            self::DELETE_USER,
-        ];
-    }
-
-    public static function commentPermissions(): array
-    {
-        return [
             self::CREATE_COMMENT,
             self::UPDATE_COMMENT,
             self::DELETE_COMMENT,
-            self::UPDATE_OWN_COMMENT,
-            self::DELETE_OWN_COMMENT,
-        ];
-    }
-
-    public static function tagPermissions(): array
-    {
-        return [
             self::CREATE_TAG,
             self::UPDATE_TAG,
             self::DELETE_TAG,
             self::VIEW_TAG,
             self::ATTACH_TAG,
-        ];
-    }
-
-    public static function attachmentPermissions(): array
-    {
-        return [
             self::UPLOAD_ATTACHMENT,
             self::DELETE_ATTACHMENT,
             self::VIEW_ATTACHMENT,
-            self::DELETE_OWN_ATTACHMENT,
+            self::VIEW_ACTIVITY_LOG,
+            self::VIEW_PROFILE,
+            self::UPDATE_PROFILE,
         ];
     }
 
-    public static function activityLogPermissions(): array
+    public static function projectManagerPermissions(): array
     {
         return [
+            self::VIEW_PROJECT,
+            self::ASSIGN_PROJECT_USER,
+            self::REMOVE_PROJECT_USER,
+            self::CREATE_TASK,
+            self::UPDATE_TASK,
+            self::VIEW_TASK,
+            self::DELETE_TASK,
+            self::ASSIGN_TASK,
+            self::VIEW_USER,
+            self::CREATE_COMMENT,
+            self::VIEW_TAG,
+            self::ATTACH_TAG,
+            self::UPLOAD_ATTACHMENT,
+            self::VIEW_ATTACHMENT,
             self::VIEW_ACTIVITY_LOG,
-            self::VIEW_OWN_ACTIVITY_LOG,
+            self::VIEW_PROFILE,
+            self::UPDATE_PROFILE,
         ];
     }
 
-    public static function allPermissions(): array
+    public static function memberPermissions(): array
     {
-        return array_merge(
-            self::organizationPermissions(),
-            self::projectPermissions(),
-            self::taskPermissions(),
-            self::userPermissions(),
-            self::commentPermissions(),
-            self::tagPermissions(),
-            self::attachmentPermissions(),
-            self::activityLogPermissions()
-        );
+        return [
+            self::VIEW_PROJECT,
+            self::VIEW_TASK,
+            self::UPDATE_TASK,
+            self::VIEW_USER,
+            self::CREATE_COMMENT,
+            self::UPDATE_COMMENT,
+            self::DELETE_COMMENT,
+            self::VIEW_TAG,
+            self::ATTACH_TAG,
+            self::UPLOAD_ATTACHMENT,
+            self::DELETE_ATTACHMENT,
+            self::VIEW_ATTACHMENT,
+            self::VIEW_ACTIVITY_LOG,
+            self::VIEW_PROFILE,
+            self::UPDATE_PROFILE,
+        ];
     }
 }
