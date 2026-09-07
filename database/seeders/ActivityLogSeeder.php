@@ -16,21 +16,24 @@ class ActivityLogSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create random activity logs
-        ActivityLog::factory()->count(10)->forProject()->create([
-            'targetable_id' => Project::inRandomOrder()->first()?->getKey(),
+        // Create random activity logs for projects
+        ActivityLog::factory()->count(15)->forProject()->create([
+            'targetable_id' => fn () => Project::inRandomOrder()->first()?->getKey(),
         ]);
 
-        ActivityLog::factory()->count(10)->forTask()->create([
-            'targetable_id' => Task::inRandomOrder()->first()?->getKey(),
+        // Create random activity logs for tasks
+        ActivityLog::factory()->count(20)->forTask()->create([
+            'targetable_id' => fn () => Task::inRandomOrder()->first()?->getKey(),
         ]);
 
-        ActivityLog::factory()->count(10)->forUser()->create([
-            'targetable_id' => User::inRandomOrder()->first()?->getKey(),
+        // Create random activity logs for users (login, logout, password changes)
+        ActivityLog::factory()->count(25)->forUser()->create([
+            'targetable_id' => fn () => User::inRandomOrder()->first()?->getKey(),
         ]);
 
+        // Create random activity logs for organizations
         ActivityLog::factory()->count(10)->forOrganization()->create([
-            'targetable_id' => Organization::inRandomOrder()->first()?->getKey(),
+            'targetable_id' => fn () => Organization::inRandomOrder()->first()?->getKey(),
         ]);
     }
 }

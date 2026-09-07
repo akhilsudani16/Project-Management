@@ -12,9 +12,13 @@ class TaskSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create random tasks using explicit factory class instantiation
+        // Create regular tasks
         Task::factory()->count(50)->create();
+
+        // Create unassigned tasks
+        Task::factory()->count(5)->unassigned()->create();
+
+        // Create deleted task
         Task::factory()->count(1)->deleted()->create();
-        Task::factory()->count(49)->create();
     }
 }

@@ -30,7 +30,7 @@ class TaggableSeeder extends Seeder
 
                 foreach ($projectTags as $tag) {
                     // Check if already attached
-                    if (!$project->tags()->where('tag_id', $tag->id)->exists()) {
+                    if (! $project->tags()->where('tag_id', $tag->id)->exists()) {
                         $project->tags()->attach($tag->id, [
                             'id' => Str::uuid()->toString(),
                         ]);
@@ -48,7 +48,7 @@ class TaggableSeeder extends Seeder
 
                 foreach ($taskTags as $tag) {
                     // Check if already attached
-                    if (!$task->tags()->where('tag_id', $tag->id)->exists()) {
+                    if (! $task->tags()->where('tag_id', $tag->id)->exists()) {
                         $task->tags()->attach($tag->id, [
                             'id' => Str::uuid()->toString(),
                         ]);

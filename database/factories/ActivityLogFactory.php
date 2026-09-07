@@ -25,6 +25,8 @@ class ActivityLogFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()->id ?? User::factory()->create()->getKey(),
             'action' => fake()->randomElement(ActivityLogEnum::values()),
+            'targetable_type' => null,
+            'targetable_id' => null,
             'ip_address' => fake()->ipv4(),
             'user_agent' => fake()->userAgent(),
         ];
@@ -34,6 +36,12 @@ class ActivityLogFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'targetable_type' => Project::class,
+            'action' => fake()->randomElement([
+                ActivityLogEnum::CREATED_PROJECT->value,
+                ActivityLogEnum::UPDATED_PROJECT->value,
+                ActivityLogEnum::PROJECT_ARCHIVED->value,
+                ActivityLogEnum::PROJECT_RESTORED->value,
+            ]),
         ]);
     }
 
@@ -41,6 +49,12 @@ class ActivityLogFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'targetable_type' => Task::class,
+            'action' => fake()->randomElement([
+                ActivityLogEnum::CREATED_TASK->value,
+                ActivityLogEnum::UPDATED_TASK->value,
+                ActivityLogEnum::COMPLETED_TASK->value,
+                ActivityLogEnum::TASK_ASSIGNED->value,
+            ]),
         ]);
     }
 
@@ -48,6 +62,12 @@ class ActivityLogFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'targetable_type' => User::class,
+            'action' => fake()->randomElement([
+                ActivityLogEnum::LOGIN->value,
+                ActivityLogEnum::LOGOUT->value,
+                ActivityLogEnum::PASSWORD_CHANGED->value,
+                ActivityLogEnum::SESSION_REVOKED->value,
+            ]),
         ]);
     }
 
@@ -55,6 +75,11 @@ class ActivityLogFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'targetable_type' => Organization::class,
+            'action' => fake()->randomElement([
+                ActivityLogEnum::ORGANIZATION_CREATED->value,
+                ActivityLogEnum::ORGANIZATION_ARCHIVED->value,
+                ActivityLogEnum::MEMBERSHIP_CHANGED->value,
+            ]),
         ]);
     }
 }

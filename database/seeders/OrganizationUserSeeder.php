@@ -37,10 +37,15 @@ class OrganizationUserSeeder extends Seeder
                     ? $users->where('id', '!=', $user->id)->random()->id
                     : $users->first()->id;
 
-                // 90% active, 10% pending
-                $status = rand(1, 10) <= 9
-                    ? OrganizationUserStatus::ACTIVE->value
-                    : OrganizationUserStatus::PENDING->value;
+                // 80% active, 15% pending, 5% rejected
+                $rand = rand(1, 100);
+                if ($rand <= 80) {
+                    $status = OrganizationUserStatus::ACTIVE->value;
+                } elseif ($rand <= 95) {
+                    $status = OrganizationUserStatus::PENDING->value;
+                } else {
+                    $status = OrganizationUserStatus::REJECTED->value;
+                }
 
                 // Attach user to organization
                 $organization->users()->attach($user->id, [

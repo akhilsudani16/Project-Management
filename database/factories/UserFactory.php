@@ -121,4 +121,19 @@ class UserFactory extends Factory
             'must_change_password' => true,
         ]);
     }
+
+    public function withFailedLogins(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'failed_login_attempts' => rand(1, 2),
+        ]);
+    }
+
+    public function lockedOut(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'failed_login_attempts' => 3,
+            'lockout_until' => now()->addMinutes(15),
+        ]);
+    }
 }

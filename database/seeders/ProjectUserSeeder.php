@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Organization;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -16,9 +18,14 @@ class ProjectUserSeeder extends Seeder
     {
         $projects = Project::with('organization.users')->get();
 
+        /** @var Project $project */
         foreach ($projects as $project) {
-            // Get users from this project's organization
-            $orgUsers = $project->organization->users;
+
+            /** @var Organization $organization */
+            $organization = $project->organization;
+
+            /** @var Collection<int, User> $orgUsers */
+            $orgUsers = $organization->users;
 
             if ($orgUsers->isEmpty()) {
                 continue;
@@ -26,8 +33,10 @@ class ProjectUserSeeder extends Seeder
 
             // Assign 2-5 users per project
             $userCount = min(rand(2, 5), $orgUsers->count());
+            /** @var Collection<int, User> $projectUsers */
             $projectUsers = $orgUsers->random($userCount);
 
+            /** @var User $user */
             foreach ($projectUsers as $user) {
                 // Skip if already attached
                 if ($project->users()->where('user_id', $user->id)->exists()) {

@@ -22,10 +22,10 @@ return new class extends Migration
             $table->boolean('must_change_password')->default(false);
             $table->enum('status', UserStatus::values())->default(UserStatus::ACTIVE->value);
             $table->text('bio')->nullable();
-            $table->string('phone');
-            $table->string('job_title');
-            $table->string('location');
-            $table->string('avatar_path');
+            $table->string('phone')->nullable();
+            $table->string('job_title')->nullable();
+            $table->string('location')->nullable();
+            $table->string('avatar_path')->nullable();
             $table->integer('failed_login_attempts')->default(0);
             $table->timestamp('lockout_until')->nullable();
             $table->timestamp('email_verified_at')->nullable();
