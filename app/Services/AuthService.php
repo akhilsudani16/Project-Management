@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\UserRole;
-use App\Enums\UserStatus;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
@@ -32,7 +30,6 @@ class AuthService
             'email' => $email,
             'password' => Hash::make($password),
             'role_id' => $memberRole->id,
-            'status' => UserStatus::PENDING->value,
         ]);
     }
 
@@ -45,9 +42,9 @@ class AuthService
      */
     public function login(string $email, string $password, string $ip, ?string $deviceName = null): array
     {
-        $key = 'login.'.$ip.'.'.$email;
+        // Rate limiting by email (3 attempts, 15 minutes block)
+        $key = 'login.'.$email;
 
-        // Check rate limiting
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);
             throw ValidationException::withMessages([
@@ -55,33 +52,23 @@ class AuthService
             ]);
         }
 
-        // Find user
+        // Find user and verify password
         $user = User::where('email', $email)->first();
 
-        // Verify credentials
         if (! $user || ! Hash::check($password, $user->password)) {
-            RateLimiter::hit($key, 900); // 15 minutes lockout
-
-            if ($user) {
-                $this->handleFailedLogin($user);
-            }
+            // Failed login - hit rate limiter
+            RateLimiter::hit($key, 900); // 15 minutes
 
             throw ValidationException::withMessages([
                 'email' => [__('auth.failed')],
             ]);
         }
 
-        // Check account status
-        $this->checkAccountStatus($user);
-
-        // Reset failed attempts
-        $this->resetFailedAttempts($user);
-
-        // Clear rate limiter
+        // Success - clear rate limiter
         RateLimiter::clear($key);
 
-        // Create token
-        $token = $user->createToken($deviceName ?? 'unknown', ['*'], now()->addDays(30));
+        // Create access token
+        $token = $user->createToken($deviceName ?? 'device');
 
         return [
             'user' => $user->load('role'),
@@ -103,57 +90,6 @@ class AuthService
     public function logoutAll(User $user): void
     {
         $user->tokens()->delete();
-    }
-
-    /**
-     * Handle failed login attempt.
-     */
-    private function handleFailedLogin(User $user): void
-    {
-        $user->increment('failed_login_attempts');
-
-        if ($user->failed_login_attempts >= 3) {
-            $user->update([
-                'lockout_until' => now()->addMinutes(15),
-            ]);
-        }
-    }
-
-    /**
-     * Check if account is locked or suspended.
-     *
-     * @throws ValidationException
-     */
-    private function checkAccountStatus(User $user): void
-    {
-        // Check lockout
-        $lockoutUntil = $user->lockout_until;
-        if ($lockoutUntil instanceof Carbon && $lockoutUntil->isFuture()) {
-            throw ValidationException::withMessages([
-                'email' => [__('auth.locked')],
-            ]);
-        }
-
-        // Check status
-        $userStatus = $user->status;
-        if ($userStatus instanceof UserStatus && in_array($userStatus->value, [UserStatus::SUSPENDED->value, UserStatus::INACTIVE->value], true)) {
-            throw ValidationException::withMessages([
-                'email' => [__('auth.suspended')],
-            ]);
-        }
-    }
-
-    /**
-     * Reset failed login attempts.
-     */
-    private function resetFailedAttempts(User $user): void
-    {
-        if ($user->failed_login_attempts > 0 || $user->lockout_until) {
-            $user->update([
-                'failed_login_attempts' => 0,
-                'lockout_until' => null,
-            ]);
-        }
     }
 
     /**
@@ -196,24 +132,26 @@ class AuthService
      */
     public function changePassword(User $user, string $currentPassword, string $newPassword): void
     {
+        // Verify current password
         if (! Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => [__('passwords.current_incorrect')],
             ]);
         }
 
+        // Check new password is different
         if (Hash::check($newPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'password' => [__('passwords.same_as_current')],
             ]);
         }
 
+        // Update password
         $user->update([
             'password' => Hash::make($newPassword),
-            'must_change_password' => false,
         ]);
 
-        // Revoke all tokens except current
+        // Revoke all other tokens for security
         $currentTokenId = $user->currentAccessToken()?->id;
         $user->tokens()->where('id', '!=', $currentTokenId)->delete();
     }
@@ -246,13 +184,13 @@ class AuthService
         $status = Password::reset(
             ['email' => $email, 'password' => $password, 'password_confirmation' => $password, 'token' => $token],
             function (User $user, string $password) {
+                // Update password
                 $user->forceFill([
                     'password' => Hash::make($password),
-                    'must_change_password' => false,
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                // Revoke all tokens
+                // Revoke all tokens for security
                 $user->tokens()->delete();
 
                 event(new PasswordReset($user));
