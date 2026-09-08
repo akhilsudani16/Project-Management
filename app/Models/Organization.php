@@ -39,6 +39,14 @@ class Organization extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Alias for users() relationship for consistency with service layer.
+     */
+    public function members(): BelongsToMany
+    {
+        return $this->users();
+    }
+
     public function tasks(): HasManyThrough
     {
         return $this->hasManyThrough(Task::class, Project::class);

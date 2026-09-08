@@ -1,0 +1,21 @@
+<?php
+
+return [
+    'name' => 'Project Name',
+    'description' => 'Description',
+    'organization' => 'Organization',
+    'user' => 'User',
+    'start_date' => 'Start Date',
+    'end_date' => 'End Date',
+    'created_successfully' => 'Project created successfully.',
+    'updated_successfully' => 'Project updated successfully.',
+    'deleted_successfully' => 'Project archived successfully.',
+    'restored_successfully' => 'Project restored successfully.',
+    'no_access_to_organization' => 'You do not have access to this organization.',
+    'cannot_change_organization' => 'You cannot change the project organization.',
+    'user_not_in_organization' => 'User is not a member of the project organization.',
+    'user_already_assigned' => 'User is already assigned to this project.',
+    'user_assigned_successfully' => 'User assigned to project successfully.',
+    'user_removed_successfully' => 'User removed from project successfully.',
+    'user_has_assigned_tasks' => 'Cannot remove user with assigned tasks.',
+];

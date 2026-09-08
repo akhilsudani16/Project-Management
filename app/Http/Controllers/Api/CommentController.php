@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Comment\StoreCommentRequest;
+use App\Http\Requests\Comment\UpdateCommentRequest;
+use App\Http\Resources\CommentResource;
+use App\Models\Comment;
+use App\Models\Project;
+use App\Models\Task;
+use App\Services\CommentService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+
+class CommentController extends Controller
+{
+    use AuthorizesRequests;
+
+    public function __construct(
+        private readonly CommentService $commentService,
+    ) {}
+
+    /**
+     * Get comments for a project.
+     */
+    public function projectComments(Request $request, Project $project): AnonymousResourceCollection
+    {
+        $this->authorize('view', $project);
+
+        $comments = $this->commentService->getProjectComments(
+            project: $project,
+            perPage: (int) $request->input('per_page', 15),
+        );
+
+        return CommentResource::collection($comments);
+    }
+
+    /**
+     * Add comment to project.
+     */
+    public function storeProjectComment(StoreCommentRequest $request, Project $project): JsonResponse
+    {
+        $this->authorize('view', $project);
+
+        $comment = $this->commentService->create(
+            commentable: $project,
+            data: $request->validated(),
+            creator: $request->user(),
+        );
+
+        return (new CommentResource($comment->load('user')))
+            ->additional([
+                'message' => __('comment.created_successfully'),
+            ])
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    /**
+     * Get comments for a task.
+     */
+    public function taskComments(Request $request, Task $task): AnonymousResourceCollection
+    {
+        $this->authorize('view', $task);
+
+        $comments = $this->commentService->getTaskComments(
+            task: $task,
+            perPage: (int) $request->input('per_page', 15),
+        );
+
+        return CommentResource::collection($comments);
+    }
+
+    /**
+     * Add comment to task.
+     */
+    public function storeTaskComment(StoreCommentRequest $request, Task $task): JsonResponse
+    {
+        $this->authorize('view', $task);
+
+        $comment = $this->commentService->create(
+            commentable: $task,
+            data: $request->validated(),
+            creator: $request->user(),
+        );
+
+        return (new CommentResource($comment->load('user')))
+            ->additional([
+                'message' => __('comment.created_successfully'),
+            ])
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    /**
+     * Update a comment.
+     */
+    public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
+    {
+        $updated = $this->commentService->update(
+            comment: $comment,
+            data: $request->validated(),
+        );
+
+        return (new CommentResource($updated->load('user')))
+            ->additional([
+                'message' => __('comment.updated_successfully'),
+            ])
+            ->response();
+    }
+
+    /**
+     * Delete a comment.
+     */
+    public function destroy(Request $request, Comment $comment): JsonResponse
+    {
+        $this->authorize('delete', $comment);
+
+        $this->commentService->delete(
+            comment: $comment,
+            deletedBy: $request->user(),
+        );
+
+        return response()->json([
+            'message' => __('comment.deleted_successfully'),
+        ]);
+    }
+}

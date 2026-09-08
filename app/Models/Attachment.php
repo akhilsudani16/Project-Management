@@ -10,7 +10,22 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string|null $attachable_type
+ * @property string|null $attachable_id
+ * @property string $user_id
+ * @property string $file_name
+ * @property string $file_path
+ * @property int $file_size
+ * @property string $mime_type
+ * @property string|null $deleted_by
+ * @property Carbon|null $deleted_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 #[Fillable(['attachable_type', 'attachable_id', 'user_id', 'path'])]
 class Attachment extends Model
 {

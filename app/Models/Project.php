@@ -46,6 +46,14 @@ class Project extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Alias for users() relationship for consistency with service layer.
+     */
+    public function members(): BelongsToMany
+    {
+        return $this->users();
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
@@ -59,6 +67,11 @@ class Project extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function deletedBy(): BelongsTo

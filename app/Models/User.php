@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserStatus;
+use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -96,5 +97,113 @@ class User extends Authenticatable implements MustVerifyEmail
     public function deletedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'deleted_by');
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    // Helper methods for authorization
+    public function isSuperAdmin(): bool
+    {
+        /** @var Role|null $role */
+        $role = $this->role;
+
+        return $role?->name === 'super_admin';
+    }
+
+    public function isOrgAdmin(): bool
+    {
+        /** @var Role|null $role */
+        $role = $this->role;
+
+        return $role?->name === 'organization_admin';
+    }
+
+    public function isProjectManager(): bool
+    {
+        /** @var Role|null $role */
+        $role = $this->role;
+
+        return $role?->name === 'project_manager';
+    }
+
+    public function isMember(): bool
+    {
+        /** @var Role|null $role */
+        $role = $this->role;
+
+        return $role?->name === 'member';
+    }
+
+    public function hasAccessToOrganization(Organization $organization): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        // Organization Admins, PMs, and Members need to be explicitly assigned
+        return $this->organizations()
+            ->where('organizations.id', $organization->id)
+            ->wherePivot('status', 'active')
+            ->exists();
+    }
+
+    public function hasAccessToProject(Project $project): bool
+    {
+        // Super Admins have access to all projects
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        /** @var Organization|null $organization */
+        $organization = $project->organization;
+
+        // Org Admins have access to all projects in their organizations
+        if ($this->isOrgAdmin() && $organization !== null && $this->hasAccessToOrganization($organization)) {
+            return true;
+        }
+
+        // PMs and Members need to be explicitly assigned to the project
+        return $this->projects()
+            ->where('projects.id', $project->id)
+            ->exists();
+    }
+
+    public function canManageOrganization(Organization $organization): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($this->isOrgAdmin() && $this->hasAccessToOrganization($organization)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function canManageProject(Project $project): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        /** @var Organization|null $organization */
+        $organization = $project->organization;
+
+        if ($this->isOrgAdmin() && $organization !== null && $this->hasAccessToOrganization($organization)) {
+            return true;
+        }
+
+        if ($this->isProjectManager() && $this->hasAccessToProject($project)) {
+            return true;
+        }
+
+        return false;
     }
 }

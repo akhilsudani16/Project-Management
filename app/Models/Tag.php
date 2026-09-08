@@ -10,7 +10,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property string $id
+ * @property string $organization_id
+ * @property string $name
+ * @property string|null $color
+ * @property string|null $deleted_by
+ * @property Carbon|null $deleted_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ */
 #[Fillable(['organization_id', 'name', 'deleted_by'])]
 class Tag extends Model
 {
