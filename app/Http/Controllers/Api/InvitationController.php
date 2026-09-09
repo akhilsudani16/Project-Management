@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AcceptInvitationRequest;
 use App\Http\Requests\InviteRequest;
+use App\Http\Resources\OrganizationResource;
 use App\Http\Resources\UserResource;
 use App\Services\InvitationService;
+use App\Services\OrganizationService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,6 +20,7 @@ class InvitationController extends Controller
 {
     public function __construct(
         private readonly InvitationService $invitationService,
+        private readonly OrganizationService $organizationService,
     ) {}
 
     /**
@@ -50,6 +56,50 @@ class InvitationController extends Controller
             return response()->json([
                 'message' => $e->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    /**
+     * Accept organization invitation and set password.
+     * This is a public endpoint (no auth required).
+     */
+    public function acceptInvitation(AcceptInvitationRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->organizationService->acceptInvitationWithPassword(
+                email: $request->input('email'),
+                token: $request->input('token'),
+                password: $request->input('password'),
+            );
+
+            return ApiResponse::success(
+                data: [
+                    'user' => (new UserResource($result['user']))->getData($request),
+                    'organization' => (new OrganizationResource($result['organization']))->getData($request),
+                ],
+                message: __('organization.invitation_accepted_successfully'),
+                statusCode: 200
+            );
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::fail(
+                message: __('organization.no_pending_invitations'),
+                statusCode: 404
+            );
+        } catch (\RuntimeException $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        } catch (\Throwable $e) {
+            logger()->error('Accept invitation error: '.$e->getMessage(), [
+                'exception' => $e,
+                'email' => $request->input('email'),
+            ]);
+
+            return ApiResponse::fail(
+                message: 'Failed to accept invitation. Please try again.',
+                statusCode: 500
+            );
         }
     }
 }

@@ -73,5 +73,14 @@ abstract class BaseApiResource extends JsonResource
         return parent::toResponse($request)->setStatusCode($this->statusCode);
     }
 
+    /**
+     * Get just the transformed data without the API response wrapper.
+     * Useful for nested resources.
+     */
+    public function getData(Request $request): ?object
+    {
+        return $this->transformData($request);
+    }
+
     abstract protected function transformData(Request $request): ?object;
 }

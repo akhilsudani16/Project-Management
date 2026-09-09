@@ -4,6 +4,8 @@ return [
     'name' => 'Organization Name',
     'description' => 'Description',
     'list_retrieved' => 'Organizations retrieved successfully.',
+    'retrieved_successfully' => 'Organization retrieved successfully.',
+    'members_retrieved' => 'Organization members retrieved successfully.',
     'created_successfully' => 'Organization created successfully.',
     'updated_successfully' => 'Organization updated successfully.',
     'deleted_successfully' => 'Organization archived successfully.',
@@ -11,6 +13,9 @@ return [
     'cannot_delete_with_active_projects' => 'Cannot delete organization with active projects.',
     'user_already_member' => 'User is already a member of this organization.',
     'invitation_sent_successfully' => 'Invitation sent successfully.',
+    'invitation_accepted_successfully' => 'Invitation accepted successfully. You can now login.',
+    'no_pending_invitations' => 'No pending invitations found for this email.',
+    'invalid_or_expired_invitation' => 'Invalid or expired invitation token.',
     'member_updated_successfully' => 'Member role updated successfully.',
     'member_removed_successfully' => 'Member removed from organization successfully.',
 ];

@@ -18,7 +18,7 @@ class TagResource extends BaseApiResource
             'id' => $this->id,
             'name' => $this->name,
             'color' => $this->color,
-            'organization' => $this->whenLoaded('organization', fn () => (new OrganizationResource($this->organization))->transformData($request)),
+            'organization' => $this->whenLoaded('organization', fn () => (new OrganizationResource($this->organization))->getData($request)),
             'created_at' => $this->created_at,
         ];
     }

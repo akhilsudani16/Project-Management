@@ -21,7 +21,7 @@ class ActivityLogResource extends BaseApiResource
             'metadata' => $this->metadata,
             'targetable_type' => $this->targetable_type,
             'targetable_id' => $this->targetable_id,
-            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->transformData($request)),
+            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),
             'created_at' => $this->created_at,
         ];
     }

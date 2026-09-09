@@ -41,8 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             $model = class_basename($e->getModel());
+            $resourceName = strtolower($model);
 
-            return ApiResponse::notFound(__('api.resource_not_found', ['resource' => $model]));
+            return ApiResponse::notFound(__('api.resource_not_found', ['resource' => $resourceName]));
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) use ($isApiRequest) {
@@ -50,7 +51,24 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return ApiResponse::notFound('Resource not found.');
+            // Check if this is a route model binding failure (deleted/not found resource)
+            $path = $request->path();
+
+            // Extract resource type from URL path
+            if (preg_match('#/organizations/[^/]+#', $path)) {
+                return ApiResponse::notFound(__('api.resource_not_found', ['resource' => 'organization']));
+            } elseif (preg_match('#/projects/[^/]+#', $path)) {
+                return ApiResponse::notFound(__('api.resource_not_found', ['resource' => 'project']));
+            } elseif (preg_match('#/tasks/[^/]+#', $path)) {
+                return ApiResponse::notFound(__('api.resource_not_found', ['resource' => 'task']));
+            } elseif (preg_match('#/comments/[^/]+#', $path)) {
+                return ApiResponse::notFound(__('api.resource_not_found', ['resource' => 'comment']));
+            } elseif (preg_match('#/tags/[^/]+#', $path)) {
+                return ApiResponse::notFound(__('api.resource_not_found', ['resource' => 'tag']));
+            }
+
+            // Generic endpoint not found
+            return ApiResponse::notFound(__('api.route_not_found'));
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApiRequest) {

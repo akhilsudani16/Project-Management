@@ -23,10 +23,10 @@ class OrganizationResource extends BaseApiResource
             'status' => $this->resource->status?->value,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'created_by' => $this->whenLoaded('createdBy', fn () => (new UserResource($this->createdBy))->transformData($request)),
+            'created_by' => $this->whenLoaded('createdBy', fn () => (new UserResource($this->createdBy))->getData($request)),
             'members_count' => $this->when(isset($this->members_count), $this->members_count),
             'projects_count' => $this->when(isset($this->projects_count), $this->projects_count),
-            'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member) => (new UserResource($member))->transformData($request))),
+            'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member) => (new UserResource($member))->getData($request))),
         ];
     }
 }

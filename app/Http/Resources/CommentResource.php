@@ -19,7 +19,7 @@ class CommentResource extends BaseApiResource
             'content' => $this->content,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->transformData($request)),
+            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),
             'commentable_type' => $this->commentable_type,
             'commentable_id' => $this->commentable_id,
         ];

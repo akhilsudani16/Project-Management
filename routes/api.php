@@ -33,6 +33,9 @@ Route::get('email/verify', [VerifyEmailController::class, 'verify'])
     ->middleware('signed')
     ->name('verification.verify');
 
+Route::post('invitations/accept', [InvitationController::class, 'acceptInvitation'])
+    ->name('invitations.accept');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::prefix('profile')->group(function () {

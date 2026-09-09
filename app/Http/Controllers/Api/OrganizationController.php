@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\InviteUserRequest;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
@@ -64,13 +65,15 @@ class OrganizationController extends Controller
     /**
      * Display the specified organization.
      */
-    public function show(Organization $organization): OrganizationResource
+    public function show(Organization $organization): JsonResponse
     {
         $this->authorize('view', $organization);
 
         $organization = $this->organizationService->getById($organization->id);
 
-        return new OrganizationResource($organization);
+        return (new OrganizationResource($organization))
+            ->withMessage(__('organization.retrieved_successfully'))
+            ->toResponse(request());
     }
 
     /**
@@ -101,13 +104,14 @@ class OrganizationController extends Controller
                 deletedBy: $request->user(),
             );
 
-            return response()->json([
-                'message' => __('organization.deleted_successfully'),
-            ]);
+            return ApiResponse::success(
+                message: __('organization.deleted_successfully')
+            );
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
@@ -143,13 +147,14 @@ class OrganizationController extends Controller
             name: $request->input('name'),
         );
 
-        return response()->json([
-            'data' => [
-                'user' => new UserResource($result['user']),
+        return ApiResponse::success(
+            data: [
+                'user' => (new UserResource($result['user']))->getData($request),
                 'invitation' => $result['invitation'],
             ],
-            'message' => __('organization.invitation_sent_successfully'),
-        ], 201);
+            message: __('organization.invitation_sent_successfully'),
+            statusCode: 201
+        );
     }
 
     /**
@@ -193,8 +198,8 @@ class OrganizationController extends Controller
             removedBy: $request->user(),
         );
 
-        return response()->json([
-            'message' => __('organization.member_removed_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('organization.member_removed_successfully')
+        );
     }
 }

@@ -12,6 +12,7 @@ use App\Models\OrganizationUser;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -215,6 +216,15 @@ class OrganizationService
             $invitationToken = Str::random(60);
             $expiresAt = now()->addDays(7);
 
+            // Store invitation token in cache (7 days expiry)
+            $cacheKey = "invitation:{$user->email}:{$organization->id}";
+            Cache::put($cacheKey, [
+                'token' => hash('sha256', $invitationToken), // Store hashed token
+                'organization_id' => $organization->id,
+                'email' => $user->email,
+                'expires_at' => $expiresAt,
+            ], $expiresAt);
+
             // TODO: Send invitation email with token
             // Mail::to($user->email)->send(new OrganizationInvitation($organization, $invitationToken, $expiresAt));
 
@@ -262,6 +272,66 @@ class OrganizationService
             ]);
 
             return true;
+        });
+    }
+
+    /**
+     * Accept organization invitation with password setup.
+     */
+    public function acceptInvitationWithPassword(
+        string $email,
+        string $token,
+        string $password
+    ): array {
+        return DB::transaction(function () use ($email, $token, $password) {
+            // Find user
+            $user = User::where('email', $email)->firstOrFail();
+
+            // Get all pending organization memberships for this user
+            $organizations = Organization::whereHas('members', function ($query) use ($user): void {
+                $query->where('users.id', $user->id)
+                    ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
+            })->get();
+
+            if ($organizations->isEmpty()) {
+                throw new \RuntimeException(__('organization.no_pending_invitations'));
+            }
+
+            // Validate token against any of the organizations
+            $validOrganization = null;
+            foreach ($organizations as $org) {
+                $cacheKey = "invitation:{$email}:{$org->id}";
+                $cachedData = Cache::get($cacheKey);
+
+                if ($cachedData && hash('sha256', $token) === $cachedData['token']) {
+                    $validOrganization = $org;
+                    Cache::forget($cacheKey); // Remove used token
+                    break;
+                }
+            }
+
+            if ($validOrganization === null) {
+                throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
+            }
+
+            // Update user password and status
+            $user->update([
+                'password' => Hash::make($password),
+                'status' => UserStatus::ACTIVE->value,
+                'must_change_password' => false,
+                'email_verified_at' => now(), // Auto-verify email on invitation acceptance
+            ]);
+
+            // Activate organization membership
+            $validOrganization->members()->updateExistingPivot($user->id, [
+                'status' => OrganizationUserStatus::ACTIVE->value,
+                'accepted_at' => now(),
+            ]);
+
+            return [
+                'user' => $user->fresh()->load('role'),
+                'organization' => $validOrganization,
+            ];
         });
     }
 
