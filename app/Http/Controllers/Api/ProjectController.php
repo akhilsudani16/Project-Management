@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\AssignUserRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
@@ -66,13 +67,15 @@ class ProjectController extends Controller
     /**
      * Display the specified project.
      */
-    public function show(Project $project): ProjectResource
+    public function show(Project $project): JsonResponse
     {
         $this->authorize('view', $project);
 
         $project = $this->projectService->getById($project->id);
 
-        return new ProjectResource($project);
+        return (new ProjectResource($project))
+            ->withMessage(__('project.retrieved_successfully'))
+            ->toResponse(request());
     }
 
     /**
@@ -91,9 +94,10 @@ class ProjectController extends Controller
                 ->withMessage(__('project.updated_successfully'))
                 ->toResponse($request);
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
@@ -109,9 +113,9 @@ class ProjectController extends Controller
             deletedBy: $request->user(),
         );
 
-        return response()->json([
-            'message' => __('project.deleted_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('project.deleted_successfully')
+        );
     }
 
     /**
@@ -145,13 +149,15 @@ class ProjectController extends Controller
                 assignedBy: $request->user(),
             );
 
-            return response()->json([
-                'message' => __('project.user_assigned_successfully'),
-            ], 201);
+            return ApiResponse::success(
+                message: __('project.user_assigned_successfully'),
+                statusCode: 201
+            );
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
@@ -168,13 +174,14 @@ class ProjectController extends Controller
                 user: $user,
             );
 
-            return response()->json([
-                'message' => __('project.user_removed_successfully'),
-            ]);
+            return ApiResponse::success(
+                message: __('project.user_removed_successfully')
+            );
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 }

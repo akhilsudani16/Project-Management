@@ -186,6 +186,10 @@ class ProjectService
             'id' => Str::uuid(),
             'assigned_by' => $assignedBy->id,
             'assigned_at' => now(),
+            'invitation_token' => Str::random(60), // Generate token even for direct assignment
+            'invited_by' => $assignedBy->id, // Same as assigned_by for direct assignment
+            'invited_at' => now(),
+            'accepted_at' => now(), // Auto-accept for direct assignment
         ]);
 
         return true;

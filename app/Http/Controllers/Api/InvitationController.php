@@ -50,7 +50,7 @@ class InvitationController extends Controller
                     'project' => $result['project'],
                     'invitation' => $result['invitation'],
                 ],
-                'message' => 'User invited successfully.',
+                'message' => __('organization.invitation_sent_successfully'),
             ], Response::HTTP_CREATED);
         } catch (\RuntimeException $e) {
             return response()->json([

@@ -8,8 +8,9 @@ return [
     |--------------------------------------------------------------------------
     */
 
-    'verified' => 'Your email has been verified.',
-    'already_verified' => 'Your email address is already verified.',
+    'verified' => 'Email verified successfully. You can now login.',
+    'already_verified' => 'Email already verified.',
     'sent' => 'We have sent a verification link to your email address.',
+    'user_not_found' => 'User not found.',
 
 ];

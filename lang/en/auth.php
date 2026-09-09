@@ -22,6 +22,7 @@ return [
     'logout_success' => 'Logged out successfully.',
     'logout_all_success' => 'Logged out from all devices successfully.',
     'register_success' => 'Registration successful. Please check your email to verify your account.',
+    'profile_retrieved' => 'Profile retrieved successfully.',
     'session_revoked' => 'Session revoked successfully.',
     'token_not_found' => 'Token not found.',
 

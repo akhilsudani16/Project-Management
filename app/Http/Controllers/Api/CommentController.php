@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
@@ -124,8 +125,8 @@ class CommentController extends Controller
             deletedBy: $request->user(),
         );
 
-        return response()->json([
-            'message' => __('comment.deleted_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('comment.deleted_successfully')
+        );
     }
 }

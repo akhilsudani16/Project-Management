@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['organization_id', 'name', 'description', 'status', 'start_date', 'end_date'])]
+#[Fillable(['organization_id', 'name', 'description', 'status', 'start_date', 'end_date', 'created_by', 'deleted_by'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */

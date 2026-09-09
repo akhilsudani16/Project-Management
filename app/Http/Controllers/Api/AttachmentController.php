@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Attachment\StoreAttachmentRequest;
 use App\Http\Resources\AttachmentResource;
@@ -63,8 +64,8 @@ class AttachmentController extends Controller
             deletedBy: $request->user(),
         );
 
-        return response()->json([
-            'message' => __('attachment.deleted_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('attachment.deleted_successfully')
+        );
     }
 }

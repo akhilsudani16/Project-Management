@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
@@ -82,9 +83,9 @@ class TagController extends Controller
 
         $this->tagService->delete($tag);
 
-        return response()->json([
-            'message' => __('tag.deleted_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('tag.deleted_successfully')
+        );
     }
 
     /**
@@ -96,9 +97,9 @@ class TagController extends Controller
 
         $attached = $this->tagService->attachToTask($tag, $task);
 
-        return response()->json([
-            'message' => $attached ? __('tag.attached_successfully') : __('tag.already_attached'),
-        ]);
+        return ApiResponse::success(
+            message: $attached ? __('tag.attached_successfully') : __('tag.already_attached')
+        );
     }
 
     /**
@@ -110,8 +111,8 @@ class TagController extends Controller
 
         $this->tagService->detachFromTask($tag, $task);
 
-        return response()->json([
-            'message' => __('tag.detached_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('tag.detached_successfully')
+        );
     }
 }

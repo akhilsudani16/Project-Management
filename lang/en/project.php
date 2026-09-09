@@ -11,6 +11,7 @@ return [
     'updated_successfully' => 'Project updated successfully.',
     'deleted_successfully' => 'Project archived successfully.',
     'restored_successfully' => 'Project restored successfully.',
+    'retrieved_successfully' => 'Project retrieved successfully.',
     'no_access_to_organization' => 'You do not have access to this organization.',
     'cannot_change_organization' => 'You cannot change the project organization.',
     'user_not_in_organization' => 'User is not a member of the project organization.',

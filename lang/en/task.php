@@ -10,6 +10,7 @@ return [
     'updated_successfully' => 'Task updated successfully.',
     'deleted_successfully' => 'Task archived successfully.',
     'restored_successfully' => 'Task restored successfully.',
+    'retrieved_successfully' => 'Task retrieved successfully.',
     'assigned_successfully' => 'Task assigned successfully.',
     'unassigned_successfully' => 'Task unassigned successfully.',
     'no_access_to_project' => 'You do not have access to this project.',

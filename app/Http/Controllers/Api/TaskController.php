@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\AssignTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
@@ -64,22 +65,25 @@ class TaskController extends Controller
                 ->withStatusCode(201)
                 ->toResponse($request);
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
     /**
      * Display the specified task.
      */
-    public function show(Task $task): TaskResource
+    public function show(Task $task): JsonResponse
     {
         $this->authorize('view', $task);
 
         $task = $this->taskService->getById($task->id);
 
-        return new TaskResource($task);
+        return (new TaskResource($task))
+            ->withMessage(__('task.retrieved_successfully'))
+            ->toResponse(request());
     }
 
     /**
@@ -98,9 +102,10 @@ class TaskController extends Controller
                 ->withMessage(__('task.updated_successfully'))
                 ->toResponse($request);
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
@@ -116,9 +121,9 @@ class TaskController extends Controller
             deletedBy: $request->user(),
         );
 
-        return response()->json([
-            'message' => __('task.deleted_successfully'),
-        ]);
+        return ApiResponse::success(
+            message: __('task.deleted_successfully')
+        );
     }
 
     /**
@@ -138,9 +143,10 @@ class TaskController extends Controller
                 ->withMessage(__('task.assigned_successfully'))
                 ->toResponse($request);
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
