@@ -31,7 +31,7 @@ class UpdateOrganizationRequest extends FormRequest
         return [
             'name' => ['nullable', 'string', 'max:255', Rule::unique('organizations', 'name')->ignore($organization->id)],
             'description' => ['nullable', 'string', 'max:1000'],
-            'status' => ['nullable', Rule::enum(OrganizationStatus::class)],
+            'status' => ['nullable', 'string', Rule::in(OrganizationStatus::values())],
         ];
     }
 

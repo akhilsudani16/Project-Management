@@ -30,7 +30,7 @@ class StoreOrganizationRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', 'unique:organizations,name'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'status' => ['nullable', Rule::enum(OrganizationStatus::class)],
+            'status' => ['nullable', 'string', Rule::in(OrganizationStatus::values())],
         ];
     }
 

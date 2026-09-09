@@ -30,7 +30,7 @@ class UpdateProjectRequest extends FormRequest
             'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
             'name' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::enum(ProjectStatus::class)],
+            'status' => ['nullable', 'string', Rule::in(ProjectStatus::values())],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after:start_date'],
         ];

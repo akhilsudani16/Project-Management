@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -42,7 +43,7 @@ class UserResource extends BaseApiResource
             'name' => $this->resource->name,
             'email' => $this->resource->email,
             'email_verified_at' => $this->resource->email_verified_at,
-            'status' => $this->resource->status,
+            'status' => $this->resource->status instanceof UserStatus ? $this->resource->status->value : $this->resource->status,
             'must_change_password' => $this->resource->must_change_password,
             'phone' => $this->resource->phone,
             'job_title' => $this->resource->job_title,

@@ -31,8 +31,8 @@ class UpdateTaskRequest extends FormRequest
             'user_id' => ['nullable', 'uuid', 'exists:users,id'],
             'title' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::enum(TaskStatus::class)],
-            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
+            'status' => ['nullable', 'string', Rule::in(TaskStatus::values())],
+            'priority' => ['nullable', 'string', Rule::in(TaskPriority::values())],
             'due_date' => ['nullable', 'date'],
         ];
     }

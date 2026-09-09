@@ -18,7 +18,7 @@ class ProjectResource extends BaseApiResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'status' => $this->status,
+            'status' => $this->resource->status?->value,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'created_at' => $this->created_at,

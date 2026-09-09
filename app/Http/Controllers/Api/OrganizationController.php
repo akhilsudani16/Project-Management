@@ -55,7 +55,7 @@ class OrganizationController extends Controller
             creator: $request->user(),
         );
 
-        return (new OrganizationResource($organization->load('createdBy')))
+        return (new OrganizationResource($organization->fresh()->load('createdBy')))
             ->withMessage(__('organization.created_successfully'))
             ->withStatusCode(201)
             ->toResponse($request);

@@ -31,7 +31,7 @@ class StoreProjectRequest extends FormRequest
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::enum(ProjectStatus::class)],
+            'status' => ['nullable', 'string', Rule::in(ProjectStatus::values())],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after:start_date'],
         ];
