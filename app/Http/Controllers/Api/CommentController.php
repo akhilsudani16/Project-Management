@@ -54,11 +54,9 @@ class CommentController extends Controller
         );
 
         return (new CommentResource($comment->load('user')))
-            ->additional([
-                'message' => __('comment.created_successfully'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->withMessage(__('comment.created_successfully'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 
     /**
@@ -90,11 +88,9 @@ class CommentController extends Controller
         );
 
         return (new CommentResource($comment->load('user')))
-            ->additional([
-                'message' => __('comment.created_successfully'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->withMessage(__('comment.created_successfully'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 
     /**
@@ -108,10 +104,8 @@ class CommentController extends Controller
         );
 
         return (new CommentResource($updated->load('user')))
-            ->additional([
-                'message' => __('comment.updated_successfully'),
-            ])
-            ->response();
+            ->withMessage(__('comment.updated_successfully'))
+            ->toResponse($request);
     }
 
     /**

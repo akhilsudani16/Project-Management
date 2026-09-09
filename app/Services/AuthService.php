@@ -8,7 +8,6 @@ use App\Enums\UserRole;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
@@ -68,11 +67,16 @@ class AuthService
         RateLimiter::clear($key);
 
         // Create access token
-        $token = $user->createToken($deviceName ?? 'device');
+        $fullToken = $user->createToken($deviceName ?? 'device')->plainTextToken;
+
+        // Split token to remove ID prefix (security best practice)
+        // Laravel Sanctum format: "1|AbCdEf..." -> Only send "AbCdEf..."
+        $parts = explode('|', $fullToken, 2);
+        $safeToken = $parts[1] ?? $fullToken;
 
         return [
             'user' => $user->load('role'),
-            'token' => $token,
+            'token' => $safeToken,
         ];
     }
 
@@ -106,7 +110,6 @@ class AuthService
         }
 
         $user->markEmailAsVerified();
-        event(new Verified($user));
     }
 
     /**

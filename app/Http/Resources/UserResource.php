@@ -4,21 +4,40 @@ namespace App\Http\Resources;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin User
  */
-class UserResource extends JsonResource
+class UserResource extends BaseApiResource
 {
+    private bool $minimal = false;
+
     /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
+     * Set minimal mode (for login responses)
      */
-    public function toArray(Request $request): array
+    public function minimal(): self
     {
-        return [
+        $this->minimal = true;
+
+        return $this;
+    }
+
+    protected function transformData(Request $request): ?object
+    {
+        // Minimal response (for login, quick lists)
+        if ($this->minimal) {
+            return (object) [
+                'id' => $this->resource->id,
+                'name' => $this->resource->name,
+                'email' => $this->resource->email,
+                'role' => $this->resource->role?->name,
+                'created_at' => $this->resource->created_at?->format('Y-m-d H:i:s'),
+                'updated_at' => $this->resource->updated_at?->format('Y-m-d H:i:s'),
+            ];
+        }
+
+        // Full response (for profile, detailed views)
+        return (object) [
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'email' => $this->resource->email,
@@ -30,7 +49,7 @@ class UserResource extends JsonResource
             'location' => $this->resource->location,
             'avatar_path' => $this->resource->avatar_path,
             'bio' => $this->resource->bio,
-            'role' => [
+            'role' => (object) [
                 'id' => $this->resource->role?->id,
                 'name' => $this->resource->role?->name,
                 'description' => $this->resource->role?->description,

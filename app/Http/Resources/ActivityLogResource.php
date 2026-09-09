@@ -6,23 +6,22 @@ namespace App\Http\Resources;
 
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin ActivityLog
  */
-class ActivityLogResource extends JsonResource
+class ActivityLogResource extends BaseApiResource
 {
-    public function toArray(Request $request): array
+    protected function transformData(Request $request): ?object
     {
-        return [
+        return (object) [
             'id' => $this->id,
             'action' => $this->action,
             'description' => $this->description,
             'metadata' => $this->metadata,
             'targetable_type' => $this->targetable_type,
             'targetable_id' => $this->targetable_id,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->transformData($request)),
             'created_at' => $this->created_at,
         ];
     }

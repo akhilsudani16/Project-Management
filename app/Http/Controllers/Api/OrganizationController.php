@@ -54,11 +54,9 @@ class OrganizationController extends Controller
         );
 
         return (new OrganizationResource($organization->load('createdBy')))
-            ->additional([
-                'message' => __('organization.created_successfully'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->withMessage(__('organization.created_successfully'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 
     /**
@@ -84,10 +82,8 @@ class OrganizationController extends Controller
         );
 
         return (new OrganizationResource($updated->load('createdBy')))
-            ->additional([
-                'message' => __('organization.updated_successfully'),
-            ])
-            ->response();
+            ->withMessage(__('organization.updated_successfully'))
+            ->toResponse($request);
     }
 
     /**
@@ -111,24 +107,6 @@ class OrganizationController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
-    }
-
-    /**
-     * Restore the specified organization.
-     */
-    public function restore(string $id, Request $request): JsonResponse
-    {
-        $organization = Organization::withTrashed()->findOrFail($id);
-
-        $this->authorize('restore', $organization);
-
-        $this->organizationService->restore($organization);
-
-        return (new OrganizationResource($organization->fresh()->load('createdBy')))
-            ->additional([
-                'message' => __('organization.restored_successfully'),
-            ])
-            ->response();
     }
 
     /**
@@ -191,10 +169,8 @@ class OrganizationController extends Controller
         );
 
         return (new UserResource($updated))
-            ->additional([
-                'message' => __('organization.member_updated_successfully'),
-            ])
-            ->response();
+            ->withMessage(__('organization.member_updated_successfully'))
+            ->toResponse($request);
     }
 
     /**

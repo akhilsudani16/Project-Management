@@ -29,12 +29,9 @@ class LoginController extends Controller
         );
 
         return (new UserResource($result['user']))
-            ->additional([
-                'message' => __('auth.login_success'),
-                'token' => $result['token']->plainTextToken,
-                'expires_at' => $result['token']->accessToken->expires_at,
-            ])
-            ->response()
-            ->setStatusCode(200);
+            ->minimal()
+            ->withMessage(__('auth.login_success'))
+            ->withMeta(['token' => $result['token']])
+            ->toResponse($request);
     }
 }

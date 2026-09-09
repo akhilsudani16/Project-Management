@@ -56,11 +56,9 @@ class ProjectController extends Controller
         );
 
         return (new ProjectResource($project->load(['organization', 'createdBy'])))
-            ->additional([
-                'message' => __('project.created_successfully'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->withMessage(__('project.created_successfully'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 
     /**
@@ -88,10 +86,8 @@ class ProjectController extends Controller
             );
 
             return (new ProjectResource($updated->load(['organization', 'createdBy'])))
-                ->additional([
-                    'message' => __('project.updated_successfully'),
-                ])
-                ->response();
+                ->withMessage(__('project.updated_successfully'))
+                ->toResponse($request);
         } catch (\RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -114,24 +110,6 @@ class ProjectController extends Controller
         return response()->json([
             'message' => __('project.deleted_successfully'),
         ]);
-    }
-
-    /**
-     * Restore the specified project.
-     */
-    public function restore(string $id, Request $request): JsonResponse
-    {
-        $project = Project::withTrashed()->findOrFail($id);
-
-        $this->authorize('restore', $project);
-
-        $this->projectService->restore($project);
-
-        return (new ProjectResource($project->fresh()->load(['organization', 'createdBy'])))
-            ->additional([
-                'message' => __('project.restored_successfully'),
-            ])
-            ->response();
     }
 
     /**

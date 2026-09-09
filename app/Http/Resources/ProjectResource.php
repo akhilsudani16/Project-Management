@@ -6,21 +6,15 @@ namespace App\Http\Resources;
 
 use App\Models\Project;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin Project
  */
-class ProjectResource extends JsonResource
+class ProjectResource extends BaseApiResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected function transformData(Request $request): ?object
     {
-        return [
+        return (object) [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
@@ -29,11 +23,11 @@ class ProjectResource extends JsonResource
             'end_date' => $this->end_date,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'organization' => new OrganizationResource($this->whenLoaded('organization')),
-            'created_by' => new UserResource($this->whenLoaded('createdBy')),
+            'organization' => $this->whenLoaded('organization', fn () => (new OrganizationResource($this->organization))->transformData($request)),
+            'created_by' => $this->whenLoaded('createdBy', fn () => (new UserResource($this->createdBy))->transformData($request)),
             'members_count' => $this->when(isset($this->members_count), $this->members_count),
             'tasks_count' => $this->when(isset($this->tasks_count), $this->tasks_count),
-            'members' => UserResource::collection($this->whenLoaded('members')),
+            'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member) => (new UserResource($member))->transformData($request))),
         ];
     }
 }

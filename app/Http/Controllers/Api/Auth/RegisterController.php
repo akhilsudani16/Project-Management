@@ -31,10 +31,9 @@ class RegisterController extends Controller
         $user->sendEmailVerificationNotification();
 
         return (new UserResource($user))
-            ->additional([
-                'message' => __('auth.register_success'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->minimal()
+            ->withMessage(__('auth.register_success'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 }

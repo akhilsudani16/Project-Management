@@ -58,11 +58,9 @@ class TaskController extends Controller
             );
 
             return (new TaskResource($task->load(['project', 'user', 'creator'])))
-                ->additional([
-                    'message' => __('task.created_successfully'),
-                ])
-                ->response()
-                ->setStatusCode(201);
+                ->withMessage(__('task.created_successfully'))
+                ->withStatusCode(201)
+                ->toResponse($request);
         } catch (\RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -95,10 +93,8 @@ class TaskController extends Controller
             );
 
             return (new TaskResource($updated->load(['project', 'user', 'creator'])))
-                ->additional([
-                    'message' => __('task.updated_successfully'),
-                ])
-                ->response();
+                ->withMessage(__('task.updated_successfully'))
+                ->toResponse($request);
         } catch (\RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -124,24 +120,6 @@ class TaskController extends Controller
     }
 
     /**
-     * Restore the specified task.
-     */
-    public function restore(string $id, Request $request): JsonResponse
-    {
-        $task = Task::withTrashed()->findOrFail($id);
-
-        $this->authorize('restore', $task);
-
-        $this->taskService->restore($task);
-
-        return (new TaskResource($task->fresh()->load(['project', 'user', 'creator'])))
-            ->additional([
-                'message' => __('task.restored_successfully'),
-            ])
-            ->response();
-    }
-
-    /**
      * Assign task to user.
      */
     public function assign(AssignTaskRequest $request, Task $task): JsonResponse
@@ -155,10 +133,8 @@ class TaskController extends Controller
             );
 
             return (new TaskResource($updated->load(['project', 'user', 'creator'])))
-                ->additional([
-                    'message' => __('task.assigned_successfully'),
-                ])
-                ->response();
+                ->withMessage(__('task.assigned_successfully'))
+                ->toResponse($request);
         } catch (\RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
@@ -176,10 +152,8 @@ class TaskController extends Controller
         $updated = $this->taskService->unassign($task);
 
         return (new TaskResource($updated->load(['project', 'user', 'creator'])))
-            ->additional([
-                'message' => __('task.unassigned_successfully'),
-            ])
-            ->response();
+            ->withMessage(__('task.unassigned_successfully'))
+            ->toResponse($request);
     }
 
     /**

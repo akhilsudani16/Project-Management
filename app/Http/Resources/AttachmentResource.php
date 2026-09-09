@@ -6,16 +6,15 @@ namespace App\Http\Resources;
 
 use App\Models\Attachment;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin Attachment
  */
-class AttachmentResource extends JsonResource
+class AttachmentResource extends BaseApiResource
 {
-    public function toArray(Request $request): array
+    protected function transformData(Request $request): ?object
     {
-        return [
+        return (object) [
             'id' => $this->id,
             'file_name' => $this->file_name,
             'file_path' => $this->file_path,
@@ -23,7 +22,7 @@ class AttachmentResource extends JsonResource
             'mime_type' => $this->mime_type,
             'attachable_type' => $this->attachable_type,
             'attachable_id' => $this->attachable_id,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->transformData($request)),
             'created_at' => $this->created_at,
         ];
     }

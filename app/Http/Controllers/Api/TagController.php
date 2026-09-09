@@ -51,11 +51,9 @@ class TagController extends Controller
         );
 
         return (new TagResource($tag->load(['organization', 'createdBy'])))
-            ->additional([
-                'message' => __('tag.created_successfully'),
-            ])
-            ->response()
-            ->setStatusCode(201);
+            ->withMessage(__('tag.created_successfully'))
+            ->withStatusCode(201)
+            ->toResponse($request);
     }
 
     /**
@@ -69,10 +67,8 @@ class TagController extends Controller
         );
 
         return (new TagResource($updated))
-            ->additional([
-                'message' => __('tag.updated_successfully'),
-            ])
-            ->response();
+            ->withMessage(__('tag.updated_successfully'))
+            ->toResponse($request);
     }
 
     /**

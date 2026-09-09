@@ -6,26 +6,20 @@ namespace App\Http\Resources;
 
 use App\Models\Comment;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * @mixin Comment
  */
-class CommentResource extends JsonResource
+class CommentResource extends BaseApiResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(Request $request): array
+    protected function transformData(Request $request): ?object
     {
-        return [
+        return (object) [
             'id' => $this->id,
             'content' => $this->content,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'user' => new UserResource($this->whenLoaded('user')),
+            'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->transformData($request)),
             'commentable_type' => $this->commentable_type,
             'commentable_id' => $this->commentable_id,
         ];

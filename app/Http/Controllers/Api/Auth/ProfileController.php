@@ -9,12 +9,12 @@ use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class MeController extends Controller
+class ProfileController extends Controller
 {
     /**
-     * Get authenticated user.
+     * Get authenticated user profile.
      */
-    public function me(Request $request): JsonResource
+    public function show(Request $request): JsonResource
     {
         return new UserResource($request->user()->load('role'));
     }
