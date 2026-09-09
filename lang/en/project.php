@@ -18,4 +18,6 @@ return [
     'user_assigned_successfully' => 'User assigned to project successfully.',
     'user_removed_successfully' => 'User removed from project successfully.',
     'user_has_assigned_tasks' => 'Cannot remove user with assigned tasks.',
+    'list_retrieved' => 'Projects retrieved successfully.',
+    'members_retrieved' => 'Project members retrieved successfully.',
 ];

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
+use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\TagResource;
 use App\Models\Organization;
 use App\Models\Tag;
@@ -15,7 +16,6 @@ use App\Services\TagService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TagController extends Controller
 {
@@ -28,7 +28,7 @@ class TagController extends Controller
     /**
      * List tags for an organization.
      */
-    public function index(Request $request, Organization $organization): AnonymousResourceCollection
+    public function index(Request $request, Organization $organization): ApiResourceCollection
     {
         $this->authorize('view', $organization);
 
@@ -37,7 +37,9 @@ class TagController extends Controller
             perPage: (int) $request->input('per_page', 50),
         );
 
-        return TagResource::collection($tags);
+        return (new ApiResourceCollection($tags))
+            ->setResourceClass(TagResource::class)
+            ->withMessage(__('tag.list_retrieved'));
     }
 
     /**

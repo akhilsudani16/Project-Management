@@ -26,11 +26,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
-#[Fillable(['attachable_type', 'attachable_id', 'user_id', 'path'])]
+#[Fillable(['attachable_type', 'attachable_id', 'user_id', 'file_name', 'file_path', 'file_size', 'mime_type', 'deleted_by'])]
 class Attachment extends Model
 {
     /** @use HasFactory<AttachmentFactory> */
     use HasFactory, HasUuids, SoftDeletes;
+
+    protected $casts = [
+        'file_size' => 'integer',
+    ];
 
     public function attachable(): MorphTo
     {

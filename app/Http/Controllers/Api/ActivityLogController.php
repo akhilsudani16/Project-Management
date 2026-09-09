@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ActivityLogResource;
+use App\Http\Resources\ApiResourceCollection;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ActivityLogController extends Controller
 {
@@ -19,7 +19,7 @@ class ActivityLogController extends Controller
     /**
      * List activity logs.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): ApiResourceCollection
     {
         $logs = $this->activityLogService->list(
             user: $request->user(),
@@ -29,6 +29,8 @@ class ActivityLogController extends Controller
             userId: $request->input('user_id'),
         );
 
-        return ActivityLogResource::collection($logs);
+        return (new ApiResourceCollection($logs))
+            ->setResourceClass(ActivityLogResource::class)
+            ->withMessage(__('activity.list_retrieved'));
     }
 }

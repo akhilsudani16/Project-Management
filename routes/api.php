@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ActivityLogController;
+use App\Http\Controllers\Api\AttachmentController;
 use App\Http\Controllers\Api\Auth\ChangePasswordController;
 use App\Http\Controllers\Api\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\Auth\LoginController;
@@ -28,7 +29,7 @@ Route::prefix('auth')->group(function () {
     Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::get('email/verify/{id}/{hash}', [VerifyEmailController::class, 'verify'])
+Route::get('email/verify', [VerifyEmailController::class, 'verify'])
     ->middleware('signed')
     ->name('verification.verify');
 
@@ -51,11 +52,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('organizations', OrganizationController::class);
     Route::prefix('organizations/{organization}')->group(function () {
-        Route::prefix('members')->group(function () {
-            Route::get('/', [OrganizationController::class, 'members'])->name('organizations.members');
-            Route::post('invite', [OrganizationController::class, 'inviteUser'])->name('organizations.members.invite');
-            Route::patch('{user}', [OrganizationController::class, 'updateMember'])->name('organizations.members.update');
-            Route::delete('{user}', [OrganizationController::class, 'removeMember'])->name('organizations.members.remove');
+        Route::prefix('users')->group(function () {
+            Route::get('/', [OrganizationController::class, 'members'])->name('organizations.users');
+            Route::post('invite', [OrganizationController::class, 'inviteUser'])->name('organizations.users.invite');
+            Route::patch('{user}', [OrganizationController::class, 'updateMember'])->name('organizations.users.update');
+            Route::delete('{user}', [OrganizationController::class, 'removeMember'])->name('organizations.users.remove');
         });
         Route::get('tags', [TagController::class, 'index'])->name('organizations.tags');
     });
@@ -74,7 +75,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('tasks', TaskController::class);
-    Route::get('tasks/overdue/list', [TaskController::class, 'overdue'])->name('tasks.overdue');
     Route::prefix('tasks/{task}')->group(function () {
         Route::post('assign', [TaskController::class, 'assign'])->name('tasks.assign');
         Route::post('unassign', [TaskController::class, 'unassign'])->name('tasks.unassign');
@@ -93,11 +93,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [TagController::class, 'store'])->name('tags.store');
         Route::patch('{tag}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
-        Route::prefix('{tag}/tasks/{task}')->group(function () {
-            Route::post('attach', [TagController::class, 'attachToTask'])->name('tags.attach');
-            Route::delete('detach', [TagController::class, 'detachFromTask'])->name('tags.detach');
-        });
     });
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+
+    Route::prefix('attachments')->group(function () {
+        Route::post('/', [AttachmentController::class, 'store'])->name('attachments.store');
+        Route::get('{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
+        Route::delete('{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
+    });
 });

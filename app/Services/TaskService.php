@@ -239,34 +239,6 @@ class TaskService
     }
 
     /**
-     * Get overdue tasks.
-     */
-    public function getOverdueTasks(User $user, int $perPage = 15): LengthAwarePaginator
-    {
-        $query = Task::query()
-            ->with(['project', 'user', 'creator'])
-            ->where('status', '!=', TaskStatus::COMPLETED->value)
-            ->whereNotNull('due_date')
-            ->where('due_date', '<', now());
-
-        // Apply access control
-        if (! $user->isSuperAdmin()) {
-            if ($user->isOrgAdmin()) {
-                $organizationIds = $user->organizations()->pluck('organizations.id');
-                $query->whereHas('project', function ($q) use ($organizationIds): void {
-                    $q->whereIn('organization_id', $organizationIds);
-                });
-            } else {
-                $projectIds = $user->projects()->pluck('projects.id');
-                $query->whereIn('project_id', $projectIds);
-            }
-        }
-
-        return $query->orderBy('due_date', 'asc')
-            ->paginate($perPage);
-    }
-
-    /**
      * Get tasks by status for a project.
      */
     public function getTasksByStatus(Project $project): array

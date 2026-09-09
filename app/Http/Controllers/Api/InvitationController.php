@@ -9,6 +9,7 @@ use App\Http\Requests\InviteRequest;
 use App\Http\Resources\UserResource;
 use App\Services\InvitationService;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvitationController extends Controller
 {
@@ -44,11 +45,11 @@ class InvitationController extends Controller
                     'invitation' => $result['invitation'],
                 ],
                 'message' => 'User invited successfully.',
-            ], 201);
+            ], Response::HTTP_CREATED);
         } catch (\RuntimeException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
 }

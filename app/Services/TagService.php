@@ -35,14 +35,27 @@ class TagService
 
     /**
      * Create a new tag.
+     * Optionally attach to a taggable resource (Project/Task) during creation.
      */
     public function create(array $data, User $creator): Tag
     {
-        return Tag::create([
+        $tag = Tag::create([
             'organization_id' => $data['organization_id'],
             'name' => $data['name'],
             'color' => $data['color'] ?? '#3B82F6',
         ]);
+
+        // Optionally attach to resource during creation
+        if (isset($data['taggable_type'], $data['taggable_id'])) {
+            $taggableClass = $data['taggable_type'];
+            $taggable = $taggableClass::find($data['taggable_id']);
+
+            if ($taggable) {
+                $taggable->tags()->attach($tag->id, ['id' => Str::uuid()]);
+            }
+        }
+
+        return $tag;
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\InviteUserRequest;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Http\Requests\Organization\UpdateOrganizationRequest;
+use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\OrganizationResource;
 use App\Http\Resources\UserResource;
 use App\Models\Organization;
@@ -16,7 +17,6 @@ use App\Services\OrganizationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrganizationController extends Controller
 {
@@ -29,7 +29,7 @@ class OrganizationController extends Controller
     /**
      * Display a listing of organizations.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): ApiResourceCollection
     {
         $this->authorize('viewAny', Organization::class);
 
@@ -40,7 +40,9 @@ class OrganizationController extends Controller
             search: $request->input('search'),
         );
 
-        return OrganizationResource::collection($organizations);
+        return (new ApiResourceCollection($organizations))
+            ->setResourceClass(OrganizationResource::class)
+            ->withMessage(__('organization.list_retrieved'));
     }
 
     /**

@@ -7,4 +7,5 @@ return [
     'attached_successfully' => 'Tag attached to task successfully.',
     'already_attached' => 'Tag is already attached to this task.',
     'detached_successfully' => 'Tag detached from task successfully.',
+    'list_retrieved' => 'Tags retrieved successfully.',
 ];

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
+use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
 use App\Models\Project;
@@ -15,7 +16,6 @@ use App\Services\CommentService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CommentController extends Controller
 {
@@ -28,7 +28,7 @@ class CommentController extends Controller
     /**
      * Get comments for a project.
      */
-    public function projectComments(Request $request, Project $project): AnonymousResourceCollection
+    public function projectComments(Request $request, Project $project): ApiResourceCollection
     {
         $this->authorize('view', $project);
 
@@ -37,7 +37,9 @@ class CommentController extends Controller
             perPage: (int) $request->input('per_page', 15),
         );
 
-        return CommentResource::collection($comments);
+        return (new ApiResourceCollection($comments))
+            ->setResourceClass(CommentResource::class)
+            ->withMessage(__('comment.list_retrieved'));
     }
 
     /**
@@ -62,7 +64,7 @@ class CommentController extends Controller
     /**
      * Get comments for a task.
      */
-    public function taskComments(Request $request, Task $task): AnonymousResourceCollection
+    public function taskComments(Request $request, Task $task): ApiResourceCollection
     {
         $this->authorize('view', $task);
 
@@ -71,7 +73,9 @@ class CommentController extends Controller
             perPage: (int) $request->input('per_page', 15),
         );
 
-        return CommentResource::collection($comments);
+        return (new ApiResourceCollection($comments))
+            ->setResourceClass(CommentResource::class)
+            ->withMessage(__('comment.list_retrieved'));
     }
 
     /**

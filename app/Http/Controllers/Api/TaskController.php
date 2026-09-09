@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Task\AssignTaskRequest;
 use App\Http\Requests\Task\StoreTaskRequest;
 use App\Http\Requests\Task\UpdateTaskRequest;
+use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
@@ -15,7 +16,6 @@ use App\Services\TaskService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TaskController extends Controller
 {
@@ -28,7 +28,7 @@ class TaskController extends Controller
     /**
      * Display a listing of tasks.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): ApiResourceCollection
     {
         $this->authorize('viewAny', Task::class);
 
@@ -43,7 +43,9 @@ class TaskController extends Controller
             search: $request->input('search'),
         );
 
-        return TaskResource::collection($tasks);
+        return (new ApiResourceCollection($tasks))
+            ->setResourceClass(TaskResource::class)
+            ->withMessage(__('task.list_retrieved'));
     }
 
     /**

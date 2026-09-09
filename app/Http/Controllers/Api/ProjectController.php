@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Project\AssignUserRequest;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
+use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
@@ -16,7 +17,6 @@ use App\Services\ProjectService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProjectController extends Controller
 {
@@ -29,7 +29,7 @@ class ProjectController extends Controller
     /**
      * Display a listing of projects.
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request): ApiResourceCollection
     {
         $this->authorize('viewAny', Project::class);
 
@@ -42,7 +42,9 @@ class ProjectController extends Controller
             assignedToMe: $request->boolean('assigned_to_me'),
         );
 
-        return ProjectResource::collection($projects);
+        return (new ApiResourceCollection($projects))
+            ->setResourceClass(ProjectResource::class)
+            ->withMessage(__('project.list_retrieved'));
     }
 
     /**
@@ -115,7 +117,7 @@ class ProjectController extends Controller
     /**
      * Display project members.
      */
-    public function members(Project $project, Request $request): AnonymousResourceCollection
+    public function members(Project $project, Request $request): ApiResourceCollection
     {
         $this->authorize('viewMembers', $project);
 
@@ -124,7 +126,9 @@ class ProjectController extends Controller
             perPage: (int) $request->input('per_page', 15),
         );
 
-        return UserResource::collection($members);
+        return (new ApiResourceCollection($members))
+            ->setResourceClass(UserResource::class)
+            ->withMessage(__('project.members_retrieved'));
     }
 
     /**
