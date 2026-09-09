@@ -157,19 +157,4 @@ class TaskController extends Controller
             ->withMessage(__('task.unassigned_successfully'))
             ->toResponse($request);
     }
-
-    /**
-     * Get overdue tasks.
-     */
-    public function overdue(Request $request): AnonymousResourceCollection
-    {
-        $this->authorize('viewAny', Task::class);
-
-        $tasks = $this->taskService->getOverdueTasks(
-            user: $request->user(),
-            perPage: (int) $request->input('per_page', 15),
-        );
-
-        return TaskResource::collection($tasks);
-    }
 }

@@ -114,7 +114,7 @@ class OrganizationController extends Controller
     /**
      * Display organization members.
      */
-    public function members(Organization $organization, Request $request): AnonymousResourceCollection
+    public function members(Organization $organization, Request $request): ApiResourceCollection
     {
         $this->authorize('viewMembers', $organization);
 
@@ -125,7 +125,9 @@ class OrganizationController extends Controller
             search: $request->input('search'),
         );
 
-        return UserResource::collection($members);
+        return (new ApiResourceCollection($members))
+            ->setResourceClass(UserResource::class)
+            ->withMessage(__('organization.members_retrieved'));
     }
 
     /**

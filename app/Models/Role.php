@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Role extends Model
 {
     /** @use HasFactory<RoleFactory> */
-    use HasFactory, HasFactory, HasUuids;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'name',

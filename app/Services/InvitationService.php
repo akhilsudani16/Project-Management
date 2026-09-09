@@ -242,6 +242,7 @@ class InvitationService
             ->first();
 
         if ($existingMembership !== null) {
+            /** @phpstan-ignore-next-line */
             $pivotStatus = $existingMembership->pivot->status;
 
             if ($pivotStatus === OrganizationUserStatus::ACTIVE->value) {

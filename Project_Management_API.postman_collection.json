@@ -1,17 +1,16 @@
 {
 	"info": {
-		"_postman_id": "pm-api-v3",
-		"name": "Project Management API - Complete",
-		"description": "Complete REST API for Project Management System with role-based access control, organizations, projects, tasks, comments, tags, and attachments",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "project-management-api"
+		"_postman_id": "project-management-api-2026",
+		"name": "Project Management API",
+		"description": "Complete API collection for Project Management System with proper response format (status, message, data, errors, meta)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
 		"type": "bearer",
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{token}}",
+				"value": "{{auth_token}}",
 				"type": "string"
 			}
 		]
@@ -19,84 +18,39 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost/api",
+			"value": "http://project-management.test/api",
 			"type": "string"
 		},
 		{
-			"key": "token",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "organization_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "project_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "task_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "user_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "comment_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "tag_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "attachment_id",
+			"key": "auth_token",
 			"value": "",
 			"type": "string"
 		}
 	],
 	"item": [
 		{
-			"name": "🔐 Authentication",
+			"name": "Authentication",
 			"item": [
 				{
 					"name": "Register",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    pm.environment.set('user_id', response.data.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"auth": {
 							"type": "noauth"
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password@123\",\n  \"password_confirmation\": \"Password@123\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -113,8 +67,10 @@
 							"script": {
 								"exec": [
 									"if (pm.response.code === 200) {",
-									"    const response = pm.response.json();",
-									"    pm.environment.set('token', response.meta.token);",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.meta && jsonData.meta.token) {",
+									"        pm.collectionVariables.set('auth_token', jsonData.meta.token);",
+									"    }",
 									"}"
 								],
 								"type": "text/javascript"
@@ -126,15 +82,19 @@
 							"type": "noauth"
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"email\": \"kameron.gibson@example.net\",\n    \"password\": \"password\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/login",
@@ -144,62 +104,19 @@
 					}
 				},
 				{
-					"name": "Forgot Password",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"john@example.com\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/forgot-password",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "forgot-password"]
-						}
-					}
-				},
-				{
-					"name": "Reset Password",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"token\": \"reset-token\",\n  \"email\": \"john@example.com\",\n  \"password\": \"NewPassword@123\",\n  \"password_confirmation\": \"NewPassword@123\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/auth/reset-password",
-							"host": ["{{base_url}}"],
-							"path": ["auth", "reset-password"]
-						}
-					}
-				},
-				{
 					"name": "Logout",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/logout",
+							"raw": "{{base_url}}/auth/logout",
 							"host": ["{{base_url}}"],
-							"path": ["logout"]
+							"path": ["auth", "logout"]
 						}
 					}
 				},
@@ -207,237 +124,34 @@
 					"name": "Logout All Sessions",
 					"request": {
 						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/logout-all",
-							"host": ["{{base_url}}"],
-							"path": ["logout-all"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "👤 Profile",
-			"item": [
-				{
-					"name": "Get Profile",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/profile",
-							"host": ["{{base_url}}"],
-							"path": ["profile"]
-						}
-					}
-				},
-				{
-					"name": "Change Password",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"current_password\": \"password\",\n  \"password\": \"NewPassword@123\",\n  \"password_confirmation\": \"NewPassword@123\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
-						},
+						],
 						"url": {
-							"raw": "{{base_url}}/profile/change-password",
+							"raw": "{{base_url}}/auth/logout-all",
 							"host": ["{{base_url}}"],
-							"path": ["profile", "change-password"]
-						}
-					}
-				},
-				{
-					"name": "Resend Verification Email",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/profile/resend-verification",
-							"host": ["{{base_url}}"],
-							"path": ["profile", "resend-verification"]
+							"path": ["auth", "logout-all"]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "🔑 Sessions",
-			"item": [
-				{
-					"name": "List Active Sessions",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sessions",
-							"host": ["{{base_url}}"],
-							"path": ["sessions"]
-						}
-					}
-				},
-				{
-					"name": "Revoke Session",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/sessions/:tokenId",
-							"host": ["{{base_url}}"],
-							"path": ["sessions", ":tokenId"],
-							"variable": [
-								{
-									"key": "tokenId",
-									"value": "1"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "📧 Email Verification",
-			"item": [
-				{
-					"name": "Verify Email",
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/email/verify?email=john@example.com&expires=1234567890&signature=hash",
-							"host": ["{{base_url}}"],
-							"path": ["email", "verify"],
-							"query": [
-								{
-									"key": "email",
-									"value": "john@example.com"
-								},
-								{
-									"key": "expires",
-									"value": "1234567890"
-								},
-								{
-									"key": "signature",
-									"value": "hash"
-								}
-							]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "✉️ Invitations",
-			"item": [
-				{
-					"name": "Unified Invite",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"user@example.com\",\n  \"name\": \"New User\",\n  \"role\": \"member\",\n  \"organization_id\": \"{{organization_id}}\",\n  \"project_id\": \"{{project_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/invitations",
-							"host": ["{{base_url}}"],
-							"path": ["invitations"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "🔄 Restore",
-			"item": [
-				{
-					"name": "Restore Organization",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"type\": \"organization\",\n  \"id\": \"{{organization_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/restore",
-							"host": ["{{base_url}}"],
-							"path": ["restore"]
-						}
-					}
-				},
-				{
-					"name": "Restore Project",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"type\": \"project\",\n  \"id\": \"{{project_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/restore",
-							"host": ["{{base_url}}"],
-							"path": ["restore"]
-						}
-					}
-				},
-				{
-					"name": "Restore Task",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"type\": \"task\",\n  \"id\": \"{{task_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/restore",
-							"host": ["{{base_url}}"],
-							"path": ["restore"]
-						}
-					}
-				}
-			]
-		},
-		{
-			"name": "🏢 Organizations",
+			"name": "Organizations",
 			"item": [
 				{
 					"name": "List Organizations",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/organizations?per_page=15",
 							"host": ["{{base_url}}"],
@@ -454,7 +168,7 @@
 								},
 								{
 									"key": "search",
-									"value": "company",
+									"value": "tech",
 									"disabled": true
 								}
 							]
@@ -463,30 +177,21 @@
 				},
 				{
 					"name": "Create Organization",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    pm.environment.set('organization_id', pm.response.json().data.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Tech Corp\",\n  \"description\": \"Technology company\",\n  \"status\": \"active\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"name\": \"Tech Corp\",\n    \"description\": \"Technology company\",\n    \"status\": \"active\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/organizations",
@@ -499,32 +204,53 @@
 					"name": "Get Organization",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}",
+							"raw": "{{base_url}}/organizations/:id",
 							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}"]
+							"path": ["organizations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
 				{
 					"name": "Update Organization",
 					"request": {
-						"method": "PATCH",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Tech Corp\",\n  \"description\": \"Updated description\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"name\": \"Tech Corp Updated\",\n    \"description\": \"Updated description\",\n    \"status\": \"active\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}",
+							"raw": "{{base_url}}/organizations/:id",
 							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}"]
+							"path": ["organizations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -532,23 +258,45 @@
 					"name": "Delete Organization",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}",
+							"raw": "{{base_url}}/organizations/:id",
 							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}"]
+							"path": ["organizations", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
 				{
-					"name": "List Organization Members",
+					"name": "List Organization Users",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}/members",
+							"raw": "{{base_url}}/organizations/:id/users",
 							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}", "members"]
+							"path": ["organizations", ":id", "users"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -556,78 +304,48 @@
 					"name": "Invite User to Organization",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"name\": \"New User\",\n  \"role\": \"member\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"email\": \"newuser@example.com\",\n    \"name\": \"New User\",\n    \"role\": \"member\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}/members/invite",
+							"raw": "{{base_url}}/organizations/:id/invite",
 							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}", "members", "invite"]
-						}
-					}
-				},
-				{
-					"name": "Update Member Role",
-					"request": {
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"role\": \"project_manager\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"path": ["organizations", ":id", "invite"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
 								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}/members/{{user_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}", "members", "{{user_id}}"]
-						}
-					}
-				},
-				{
-					"name": "Remove Member",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}/members/{{user_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}", "members", "{{user_id}}"]
-						}
-					}
-				},
-				{
-					"name": "List Organization Tags",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/organizations/{{organization_id}}/tags",
-							"host": ["{{base_url}}"],
-							"path": ["organizations", "{{organization_id}}", "tags"]
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "📁 Projects",
+			"name": "Projects",
 			"item": [
 				{
 					"name": "List Projects",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/projects?per_page=15",
 							"host": ["{{base_url}}"],
@@ -639,17 +357,12 @@
 								},
 								{
 									"key": "organization_id",
-									"value": "{{organization_id}}",
+									"value": "",
 									"disabled": true
 								},
 								{
 									"key": "status",
-									"value": "active",
-									"disabled": true
-								},
-								{
-									"key": "assigned_to_me",
-									"value": "true",
+									"value": "in_progress",
 									"disabled": true
 								}
 							]
@@ -658,30 +371,21 @@
 				},
 				{
 					"name": "Create Project",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    pm.environment.set('project_id', pm.response.json().data.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"organization_id\": \"{{organization_id}}\",\n  \"name\": \"Website Redesign\",\n  \"description\": \"Complete website overhaul\",\n  \"start_date\": \"2026-09-01\",\n  \"end_date\": \"2026-12-31\",\n  \"status\": \"active\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"organization_id\": \"\",\n    \"name\": \"Mobile App Development\",\n    \"description\": \"iOS and Android app\",\n    \"status\": \"planning\",\n    \"start_date\": \"2026-09-01\",\n    \"end_date\": \"2026-12-31\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/projects",
@@ -694,32 +398,53 @@
 					"name": "Get Project",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}",
+							"raw": "{{base_url}}/projects/:id",
 							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}"]
+							"path": ["projects", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
 				{
 					"name": "Update Project",
 					"request": {
-						"method": "PATCH",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Project Name\",\n  \"status\": \"in_progress\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"name\": \"Mobile App Development Updated\",\n    \"status\": \"in_progress\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}",
+							"raw": "{{base_url}}/projects/:id",
 							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}"]
+							"path": ["projects", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -727,102 +452,40 @@
 					"name": "Delete Project",
 					"request": {
 						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}"]
-						}
-					}
-				},
-				{
-					"name": "List Project Members",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}/members",
-							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}", "members"]
-						}
-					}
-				},
-				{
-					"name": "Assign User to Project",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"user_id\": \"{{user_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
-						},
+						],
 						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}/members",
+							"raw": "{{base_url}}/projects/:id",
 							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}", "members"]
-						}
-					}
-				},
-				{
-					"name": "Remove User from Project",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}/members/{{user_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}", "members", "{{user_id}}"]
-						}
-					}
-				},
-				{
-					"name": "List Project Comments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}/comments",
-							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}", "comments"]
-						}
-					}
-				},
-				{
-					"name": "Add Project Comment",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"content\": \"This is a project comment\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+							"path": ["projects", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
 								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/projects/{{project_id}}/comments",
-							"host": ["{{base_url}}"],
-							"path": ["projects", "{{project_id}}", "comments"]
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "✅ Tasks",
+			"name": "Tasks",
 			"item": [
 				{
 					"name": "List Tasks",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
 							"raw": "{{base_url}}/tasks?per_page=15",
 							"host": ["{{base_url}}"],
@@ -834,7 +497,7 @@
 								},
 								{
 									"key": "project_id",
-									"value": "{{project_id}}",
+									"value": "",
 									"disabled": true
 								},
 								{
@@ -858,30 +521,21 @@
 				},
 				{
 					"name": "Create Task",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    pm.environment.set('task_id', pm.response.json().data.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"project_id\": \"{{project_id}}\",\n  \"title\": \"Fix login bug\",\n  \"description\": \"Users unable to login\",\n  \"status\": \"todo\",\n  \"priority\": \"high\",\n  \"due_date\": \"2026-09-15\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"project_id\": \"\",\n    \"title\": \"Design login screen\",\n    \"description\": \"Create mockups for login UI\",\n    \"status\": \"todo\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-09-15\",\n    \"user_id\": \"\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/tasks",
@@ -894,32 +548,53 @@
 					"name": "Get Task",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"raw": "{{base_url}}/tasks/:id",
 							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}"]
+							"path": ["tasks", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
 				{
 					"name": "Update Task",
 					"request": {
-						"method": "PATCH",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"title\": \"Updated task title\",\n  \"status\": \"in_progress\",\n  \"priority\": \"medium\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"priority\": \"urgent\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"raw": "{{base_url}}/tasks/:id",
 							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}"]
+							"path": ["tasks", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -927,11 +602,22 @@
 					"name": "Delete Task",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}",
+							"raw": "{{base_url}}/tasks/:id",
 							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}"]
+							"path": ["tasks", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -939,20 +625,30 @@
 					"name": "Assign Task",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"user_id\": \"{{user_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"user_id\": \"\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}/assign",
+							"raw": "{{base_url}}/tasks/:id/assign",
 							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}", "assign"]
+							"path": ["tasks", ":id", "assign"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -960,70 +656,112 @@
 					"name": "Unassign Task",
 					"request": {
 						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}/unassign",
-							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}", "unassign"]
-						}
-					}
-				},
-				{
-					"name": "List Task Comments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}/comments",
-							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}", "comments"]
-						}
-					}
-				},
-				{
-					"name": "Add Task Comment",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"content\": \"This is a task comment\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
-						},
+						],
 						"url": {
-							"raw": "{{base_url}}/tasks/{{task_id}}/comments",
+							"raw": "{{base_url}}/tasks/:id/unassign",
 							"host": ["{{base_url}}"],
-							"path": ["tasks", "{{task_id}}", "comments"]
+							"path": ["tasks", ":id", "unassign"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "💬 Comments",
+			"name": "Comments",
 			"item": [
+				{
+					"name": "List Task Comments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/:task_id/comments",
+							"host": ["{{base_url}}"],
+							"path": ["tasks", ":task_id", "comments"],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"This looks good!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/:task_id/comments",
+							"host": ["{{base_url}}"],
+							"path": ["tasks", ":task_id", "comments"],
+							"variable": [
+								{
+									"key": "task_id",
+									"value": ""
+								}
+							]
+						}
+					}
+				},
 				{
 					"name": "Update Comment",
 					"request": {
-						"method": "PATCH",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"content\": \"Updated comment content\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"content\": \"Updated comment text\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"raw": "{{base_url}}/comments/:id",
 							"host": ["{{base_url}}"],
-							"path": ["comments", "{{comment_id}}"]
+							"path": ["comments", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -1031,46 +769,40 @@
 					"name": "Delete Comment",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/comments/{{comment_id}}",
+							"raw": "{{base_url}}/comments/:id",
 							"host": ["{{base_url}}"],
-							"path": ["comments", "{{comment_id}}"]
+							"path": ["comments", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "🏷️ Tags",
+			"name": "Tags",
 			"item": [
 				{
-					"name": "Create Tag (standalone)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    pm.environment.set('tag_id', pm.response.json().data.id);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
+					"name": "List Tags",
 					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"organization_id\": \"{{organization_id}}\",\n  \"name\": \"Urgent\",\n  \"color\": \"#FF0000\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
-						},
+						],
 						"url": {
 							"raw": "{{base_url}}/tags",
 							"host": ["{{base_url}}"],
@@ -1079,39 +811,22 @@
 					}
 				},
 				{
-					"name": "Create Tag + Attach to Task",
+					"name": "Create Tag",
 					"request": {
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"organization_id\": \"{{organization_id}}\",\n  \"name\": \"Bug Fix\",\n  \"color\": \"#FF5500\",\n  \"taggable_type\": \"App\\\\Models\\\\Task\",\n  \"taggable_id\": \"{{task_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/tags",
-							"host": ["{{base_url}}"],
-							"path": ["tags"]
-						}
-					}
-				},
-				{
-					"name": "Create Tag + Attach to Project",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"organization_id\": \"{{organization_id}}\",\n  \"name\": \"Backend\",\n  \"color\": \"#3B82F6\",\n  \"taggable_type\": \"App\\\\Models\\\\Project\",\n  \"taggable_id\": \"{{project_id}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"organization_id\": \"\",\n    \"name\": \"Bug\",\n    \"color\": \"#FF0000\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/tags",
@@ -1123,21 +838,31 @@
 				{
 					"name": "Update Tag",
 					"request": {
-						"method": "PATCH",
-						"header": [],
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"High Priority\",\n  \"color\": \"#FF9900\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
+							"raw": "{\n    \"name\": \"Critical Bug\",\n    \"color\": \"#FF0000\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/tags/{{tag_id}}",
+							"raw": "{{base_url}}/tags/:id",
 							"host": ["{{base_url}}"],
-							"path": ["tags", "{{tag_id}}"]
+							"path": ["tags", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				},
@@ -1145,37 +870,40 @@
 					"name": "Delete Tag",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/tags/{{tag_id}}",
+							"raw": "{{base_url}}/tags/:id",
 							"host": ["{{base_url}}"],
-							"path": ["tags", "{{tag_id}}"]
+							"path": ["tags", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "📎 Attachments",
+			"name": "Attachments",
 			"item": [
 				{
-					"name": "Upload Attachment to Task",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    pm.environment.set('attachment_id', pm.response.json().data.id);",
-									"}"
-								],
-								"type": "text/javascript"
+					"name": "Upload Attachment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
 							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
+						],
 						"body": {
 							"mode": "formdata",
 							"formdata": [
@@ -1186,12 +914,12 @@
 								},
 								{
 									"key": "attachable_type",
-									"value": "App\\Models\\Task",
+									"value": "task",
 									"type": "text"
 								},
 								{
 									"key": "attachable_id",
-									"value": "{{task_id}}",
+									"value": "",
 									"type": "text"
 								}
 							]
@@ -1200,50 +928,6 @@
 							"raw": "{{base_url}}/attachments",
 							"host": ["{{base_url}}"],
 							"path": ["attachments"]
-						}
-					}
-				},
-				{
-					"name": "Upload Attachment to Project",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "attachable_type",
-									"value": "App\\Models\\Project",
-									"type": "text"
-								},
-								{
-									"key": "attachable_id",
-									"value": "{{project_id}}",
-									"type": "text"
-								}
-							]
-						},
-						"url": {
-							"raw": "{{base_url}}/attachments",
-							"host": ["{{base_url}}"],
-							"path": ["attachments"]
-						}
-					}
-				},
-				{
-					"name": "Download Attachment",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/attachments/{{attachment_id}}/download",
-							"host": ["{{base_url}}"],
-							"path": ["attachments", "{{attachment_id}}", "download"]
 						}
 					}
 				},
@@ -1251,32 +935,58 @@
 					"name": "Delete Attachment",
 					"request": {
 						"method": "DELETE",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/attachments/{{attachment_id}}",
+							"raw": "{{base_url}}/attachments/:id",
 							"host": ["{{base_url}}"],
-							"path": ["attachments", "{{attachment_id}}"]
+							"path": ["attachments", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
 						}
 					}
 				}
 			]
 		},
 		{
-			"name": "📊 Activity Logs",
+			"name": "Activity Logs",
 			"item": [
 				{
 					"name": "List Activity Logs",
 					"request": {
 						"method": "GET",
-						"header": [],
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
 						"url": {
-							"raw": "{{base_url}}/activity-logs?per_page=15",
+							"raw": "{{base_url}}/activity-logs?per_page=20",
 							"host": ["{{base_url}}"],
 							"path": ["activity-logs"],
 							"query": [
 								{
 									"key": "per_page",
-									"value": "15"
+									"value": "20"
+								},
+								{
+									"key": "loggable_type",
+									"value": "task",
+									"disabled": true
+								},
+								{
+									"key": "loggable_id",
+									"value": "",
+									"disabled": true
 								}
 							]
 						}

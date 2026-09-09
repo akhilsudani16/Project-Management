@@ -7,7 +7,7 @@ namespace App\Http\Resources;
 use App\Enums\ApiResponseStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class BaseApiCollection extends ResourceCollection
@@ -66,7 +66,7 @@ abstract class BaseApiCollection extends ResourceCollection
     {
         $meta = $this->meta ?? [];
 
-        if ($this->resource instanceof AbstractPaginator) {
+        if ($this->resource instanceof LengthAwarePaginator) {
             $meta['pagination'] = [
                 'total' => $this->resource->total(),
                 'count' => $this->resource->count(),

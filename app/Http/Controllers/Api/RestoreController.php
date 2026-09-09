@@ -36,6 +36,7 @@ class RestoreController extends Controller
             'organization' => Organization::class,
             'project' => Project::class,
             'task' => Task::class,
+            default => throw new \InvalidArgumentException("Invalid type: {$type}"),
         };
 
         // Find soft-deleted model

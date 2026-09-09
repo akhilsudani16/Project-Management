@@ -32,7 +32,7 @@ class AttachmentPolicy
         }
 
         return match ($attachment->attachable_type) {
-            'App\\Models\\User' => $this->canAccessUserAttachment($user, $attachable),
+            'App\\Models\\User' => $this->canAccessUserAttachment($user, $attachable instanceof User ? $attachable : throw new \RuntimeException('Invalid attachable type')),
             'App\\Models\\Project' => $user->can('view', $attachable),
             'App\\Models\\Task' => $user->can('view', $attachable),
             'App\\Models\\Comment' => $this->canAccessCommentAttachment($user, $attachable),

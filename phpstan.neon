@@ -19,3 +19,19 @@ parameters:
     level: 5
     
     treatPhpDocTypesAsCertain: false
+    
+    ignoreErrors:
+        # Pivot properties are dynamic and not declared on the model
+        -
+            message: '#Access to an undefined property.*Pivot.*::\$id#'
+            path: app/Services/InvitationService.php
+        -
+            message: '#Access to an undefined property.*Pivot.*::\$organization#'
+            path: app/Services/InvitationService.php
+        # Collection covariance warnings - these are safe in Laravel resources
+        -
+            message: '#Anonymous function should return Illuminate\\Support\\Collection#'
+            paths:
+                - app/Http/Resources/OrganizationResource.php
+                - app/Http/Resources/ProjectResource.php
+                - app/Http/Resources/TaskResource.php

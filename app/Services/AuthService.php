@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Laravel\Sanctum\NewAccessToken;
 
 class AuthService
 {
@@ -35,7 +34,7 @@ class AuthService
     /**
      * Authenticate user and issue token.
      *
-     * @return array{user: User, token: NewAccessToken}
+     * @return array{user: User, token: string}
      *
      * @throws ValidationException
      */
