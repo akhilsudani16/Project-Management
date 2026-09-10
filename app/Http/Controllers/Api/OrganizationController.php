@@ -125,6 +125,7 @@ class OrganizationController extends Controller
 
         $members = $this->organizationService->getMembers(
             organization: $organization,
+            user: $request->user(),
             perPage: (int) $request->input('per_page', 15),
             status: $request->input('status'),
             search: $request->input('search'),

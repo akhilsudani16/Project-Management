@@ -19,7 +19,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'role_id', 'password', 'must_change_password', 'status', 'bio', 'phone', 'job_title', 'location', 'avatar_path', 'failed_login_attempts', 'lockout_until', 'created_by'])]
+#[Fillable(['name', 'email', 'role_id', 'password', 'must_change_password', 'status', 'bio', 'phone', 'job_title', 'location', 'avatar_path', 'failed_login_attempts', 'lockout_until', 'created_by', 'assigned_by', 'deleted_by'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -93,6 +93,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function assignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 
     public function deletedBy(): BelongsTo

@@ -65,6 +65,14 @@ class OrganizationPolicy
      */
     public function viewMembers(User $user, Organization $organization): bool
     {
+        // Super Admin and Org Admin can see all organization members
+        if ($user->isSuperAdmin() || $user->isOrgAdmin()) {
+            return $user->hasAccessToOrganization($organization);
+        }
+
+        // Project Managers and Members can only see members if they belong to the organization
+        // Note: The actual filtering of members happens in the service/controller layer
+        // PMs should only see members from their assigned projects
         return $user->hasAccessToOrganization($organization);
     }
 

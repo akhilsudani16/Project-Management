@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -22,9 +23,11 @@ class SessionController extends Controller
     {
         $sessions = $this->authService->getActiveSessions($request->user());
 
-        return response()->json([
-            'sessions' => $sessions,
-        ]);
+        return ApiResponse::success(
+            data: ['sessions' => $sessions],
+            message: 'Sessions retrieved successfully',
+            statusCode: 200
+        );
     }
 
     /**
@@ -34,8 +37,9 @@ class SessionController extends Controller
     {
         $this->authService->revokeSession($request->user(), $tokenId);
 
-        return response()->json([
-            'message' => __('auth.session_revoked'),
-        ]);
+        return ApiResponse::success(
+            message: __('auth.session_revoked'),
+            statusCode: 200
+        );
     }
 }

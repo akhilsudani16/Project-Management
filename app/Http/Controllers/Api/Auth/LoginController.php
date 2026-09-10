@@ -25,7 +25,7 @@ class LoginController extends Controller
             email: $request->email,
             password: $request->password,
             ip: $request->ip(),
-            deviceName: $request->device_name ?? $request->userAgent(),
+            deviceName: $request->userAgent() ?? 'Unknown Device',
         );
 
         return (new UserResource($result['user']))

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Services\AuthService;
@@ -20,14 +21,22 @@ class ResetPasswordController extends Controller
      */
     public function reset(ResetPasswordRequest $request): JsonResponse
     {
-        $message = $this->authService->resetPassword(
-            email: $request->email,
-            password: $request->password,
-            token: $request->token,
-        );
+        try {
+            $message = $this->authService->resetPassword(
+                email: $request->email,
+                password: $request->password,
+                token: $request->token,
+            );
 
-        return response()->json([
-            'message' => $message,
-        ]);
+            return ApiResponse::success(
+                message: $message,
+                statusCode: 200
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        }
     }
 }

@@ -11,7 +11,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class ActivityLogService
 {
     /**
-     * List activity logs with filtering.
+     * List activity logs with role-based filtering.
+     *
+     * - Super Admin: See all activity
+     * - Org Admin: See activity in assigned organizations
+     * - Project Manager: See activity in assigned projects
+     * - Member: See only own security/session activity
      */
     public function list(
         User $user,
@@ -22,17 +27,70 @@ class ActivityLogService
     ): LengthAwarePaginator {
         $query = ActivityLog::query()->with(['user']);
 
-        // Apply access control
-        if (! $user->isSuperAdmin()) {
-            // Only show logs for accessible resources
-            // For simplicity, show user's own actions + actions in their projects/orgs
-            $query->where(function ($q) use ($user): void {
-                $q->where('user_id', $user->id);
-                // Or show all in accessible projects (simplified)
+        // Apply role-based access control
+        if ($user->isSuperAdmin()) {
+            // Super Admin: See all activity logs
+            // No filtering needed
+        } elseif ($user->isOrgAdmin()) {
+            // Org Admin: See activity in assigned organizations
+            $organizationIds = $user->organizations()
+                ->wherePivot('status', 'active')
+                ->pluck('organizations.id');
+
+            $query->where(function ($q) use ($organizationIds, $user): void {
+                // Organization-level activities
+                $q->where(function ($subQ) use ($organizationIds): void {
+                    $subQ->where('targetable_type', 'App\\Models\\Organization')
+                        ->whereIn('targetable_id', $organizationIds);
+                })
+                // Project-level activities in their organizations
+                    ->orWhereIn('targetable_id', function ($subQ) use ($organizationIds): void {
+                        $subQ->select('id')
+                            ->from('projects')
+                            ->whereIn('organization_id', $organizationIds);
+                    })
+                // User activities in their organizations
+                    ->orWhereIn('targetable_id', function ($subQ) use ($organizationIds): void {
+                        $subQ->select('users.id')
+                            ->from('users')
+                            ->join('organization_user', 'users.id', '=', 'organization_user.user_id')
+                            ->whereIn('organization_user.organization_id', $organizationIds);
+                    })
+                // Own activities
+                    ->orWhere('user_id', $user->id);
             });
+        } elseif ($user->isProjectManager()) {
+            // PM: See activity in assigned projects only
+            $projectIds = $user->projects()->pluck('projects.id');
+
+            $query->where(function ($q) use ($projectIds, $user): void {
+                // Project-level activities
+                $q->where(function ($subQ) use ($projectIds): void {
+                    $subQ->where('targetable_type', 'App\\Models\\Project')
+                        ->whereIn('targetable_id', $projectIds);
+                })
+                // Task-level activities in their projects
+                    ->orWhereIn('targetable_id', function ($subQ) use ($projectIds): void {
+                        $subQ->select('id')
+                            ->from('tasks')
+                            ->whereIn('project_id', $projectIds);
+                    })
+                // User activities in their projects
+                    ->orWhereIn('targetable_id', function ($subQ) use ($projectIds): void {
+                        $subQ->select('users.id')
+                            ->from('users')
+                            ->join('project_user', 'users.id', '=', 'project_user.user_id')
+                            ->whereIn('project_user.project_id', $projectIds);
+                    })
+                // Own activities
+                    ->orWhere('user_id', $user->id);
+            });
+        } else {
+            // Member: See only own security/session activity
+            $query->where('user_id', $user->id);
         }
 
-        // Apply filters
+        // Apply additional filters
         if ($targetType !== null) {
             $query->where('targetable_type', $targetType);
         }

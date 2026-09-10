@@ -42,9 +42,9 @@ class UserResource extends BaseApiResource
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'email' => $this->resource->email,
-            'email_verified_at' => $this->resource->email_verified_at,
-            'status' => $this->resource->status instanceof UserStatus ? $this->resource->status->value : $this->resource->status,
-            'must_change_password' => $this->resource->must_change_password,
+            // 'email_verified_at' => $this->resource->email_verified_at,
+            // 'status' => $this->resource->status instanceof UserStatus ? $this->resource->status->value : $this->resource->status,
+            // 'must_change_password' => $this->resource->must_change_password,
             'phone' => $this->resource->phone,
             'job_title' => $this->resource->job_title,
             'location' => $this->resource->location,
@@ -55,8 +55,8 @@ class UserResource extends BaseApiResource
                 'name' => $this->resource->role?->name,
                 'description' => $this->resource->role?->description,
             ],
-            'created_at' => $this->resource->created_at,
-            'updated_at' => $this->resource->updated_at,
+            // 'created_at' => $this->resource->created_at,
+            // 'updated_at' => $this->resource->updated_at,
         ];
     }
 }

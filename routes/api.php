@@ -8,11 +8,9 @@ use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Auth\LogoutAllController;
 use App\Http\Controllers\Api\Auth\LogoutController;
 use App\Http\Controllers\Api\Auth\ProfileController;
-use App\Http\Controllers\Api\Auth\RegisterController;
 use App\Http\Controllers\Api\Auth\ResendVerificationController;
 use App\Http\Controllers\Api\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\Auth\SessionController;
-use App\Http\Controllers\Api\Auth\VerifyEmailController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\OrganizationController;
@@ -23,18 +21,16 @@ use App\Http\Controllers\Api\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
-    Route::post('register', [RegisterController::class, 'register'])->name('register');
     Route::post('login', [LoginController::class, 'login'])->name('login');
     Route::post('forgot-password', [ForgotPasswordController::class, 'send'])->name('password.email');
     Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::get('email/verify', [VerifyEmailController::class, 'verify'])
-    ->middleware('signed')
-    ->name('verification.verify');
-
-Route::post('invitations/accept', [InvitationController::class, 'acceptInvitation'])
-    ->name('invitations.accept');
+// Public invitation endpoints
+Route::post('invite/verify', [InvitationController::class, 'verifyToken'])
+    ->name('invite.verify');
+Route::post('invite/accept', [InvitationController::class, 'acceptInvitation'])
+    ->name('invite.accept');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
@@ -44,13 +40,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('sessions')->group(function () {
-        Route::get('/', [SessionController::class, 'index'])->name('sessions.index');
-        Route::delete('{tokenId}', [SessionController::class, 'destroy'])->name('sessions.destroy');
+        Route::get('/', [SessionController::class, 'index'])->name('sessions.index'); // done
+        Route::delete('{tokenId}', [SessionController::class, 'destroy'])->name('sessions.destroy'); // done
     });
 
     Route::post('logout', [LogoutController::class, 'logout'])->name('logout');
     Route::post('logout-all', [LogoutAllController::class, 'logoutAll'])->name('logout.all');
-    Route::post('invitations', [InvitationController::class, 'invite'])->name('invitations.invite');
+    Route::post('invite', [InvitationController::class, 'invite'])->name('invite.store');
     Route::post('restore', [RestoreController::class, 'restore'])->name('restore');
 
     Route::apiResource('organizations', OrganizationController::class);
@@ -95,6 +91,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [TagController::class, 'store'])->name('tags.store');
         Route::patch('{tag}', [TagController::class, 'update'])->name('tags.update');
         Route::delete('{tag}', [TagController::class, 'destroy'])->name('tags.destroy');
+
+        // Attach/detach tags to projects
+        Route::post('{tag}/projects/{project}/attach', [TagController::class, 'attachToProject'])->name('tags.projects.attach');
+        Route::delete('{tag}/projects/{project}/detach', [TagController::class, 'detachFromProject'])->name('tags.projects.detach');
+
+        // Attach/detach tags to tasks
+        Route::post('{tag}/tasks/{task}/attach', [TagController::class, 'attachToTask'])->name('tags.tasks.attach');
+        Route::delete('{tag}/tasks/{task}/detach', [TagController::class, 'detachFromTask'])->name('tags.tasks.detach');
     });
 
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');

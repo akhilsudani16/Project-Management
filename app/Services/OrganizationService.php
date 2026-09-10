@@ -85,14 +85,14 @@ class OrganizationService
 
     /**
      * Update an existing organization.
+     * Only updates fields that are present in the request data.
      */
     public function update(Organization $organization, array $data): Organization
     {
-        $organization->update(array_filter([
-            'name' => $data['name'] ?? null,
-            'description' => $data['description'] ?? null,
-            'status' => $data['status'] ?? null,
-        ], fn ($value) => $value !== null));
+        // Only update fields that exist in the request
+        $updateData = array_intersect_key($data, array_flip(['name', 'description', 'status']));
+
+        $organization->update($updateData);
 
         return $organization->fresh();
     }
@@ -126,15 +126,49 @@ class OrganizationService
 
     /**
      * Get organization members.
+     * - Super Admin and Org Admin: See all organization members
+     * - Project Manager: See only members from their assigned projects
+     * - Member: See only members from their assigned projects
      */
     public function getMembers(
         Organization $organization,
+        User $user,
         int $perPage = 15,
         ?string $status = null,
         ?string $search = null
     ): LengthAwarePaginator {
+        // Super Admin and Org Admin can see all members
+        if ($user->isSuperAdmin() || $user->isOrgAdmin()) {
+            $query = $organization->members()->with(['role']);
+
+            if ($status !== null) {
+                $query->wherePivot('status', $status);
+            }
+
+            if ($search !== null) {
+                $query->where(function ($q) use ($search): void {
+                    $q->where('name', 'ILIKE', "%{$search}%")
+                        ->orWhere('email', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            return $query->withPivot(['status', 'invited_by', 'invited_at', 'accepted_at'])
+                ->orderBy('organization_user.created_at', 'desc')
+                ->paginate($perPage);
+        }
+
+        // Project Manager or Member: See only members from their assigned projects
+        $projectIds = $user->projects()->pluck('projects.id');
+
+        // Get unique user IDs from all projects the user is part of
+        $userIds = \DB::table('project_user')
+            ->whereIn('project_id', $projectIds)
+            ->distinct()
+            ->pluck('user_id');
+
         $query = $organization->members()
-            ->with(['role']);
+            ->with(['role'])
+            ->whereIn('users.id', $userIds);
 
         if ($status !== null) {
             $query->wherePivot('status', $status);
@@ -263,7 +297,7 @@ class OrganizationService
         return DB::transaction(function () use ($organization, $user, $removedBy) {
             // Remove from all organization projects
             $projectIds = $organization->projects()->pluck('projects.id');
-            $user->projects()->detach($projectIds);
+            $user->projects()->detach($projectIds); // Feature: if project alreday assised this user and remove same user so first assisge project other user and then remove user
 
             // Update pivot with deleted_by before detaching
             $organization->members()->updateExistingPivot($user->id, [
@@ -276,18 +310,134 @@ class OrganizationService
     }
 
     /**
+     * Get email from invitation token by searching cache.
+     */
+    private function getEmailFromToken(string $token): ?string
+    {
+        $hashedToken = hash('sha256', $token);
+
+        // Search through all users with pending invitations
+        $pendingUsers = User::whereHas('organizations', function ($query): void {
+            $query->wherePivot('status', OrganizationUserStatus::PENDING->value);
+        })->get();
+
+        foreach ($pendingUsers as $user) {
+            // Get organizations for this user
+            $organizations = Organization::whereHas('members', function ($query) use ($user): void {
+                $query->where('users.id', $user->id)
+                    ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
+            })->get();
+
+            // Check cache for each organization
+            foreach ($organizations as $org) {
+                $cacheKey = "invitation:{$user->email}:{$org->id}";
+                $cachedData = Cache::get($cacheKey);
+
+                if ($cachedData && $hashedToken === $cachedData['token']) {
+                    return $user->email;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Verify invitation token and return user/organization info.
+     * This allows the UI to validate the token before password setup.
+     */
+    public function verifyInvitationToken(string $token): array
+    {
+        // Get email from token
+        $email = $this->getEmailFromToken($token);
+
+        if (! $email) {
+            throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
+        }
+
+        // Find user
+        $user = User::where('email', $email)->first();
+
+        if (! $user) {
+            throw new \RuntimeException(__('organization.user_not_found'));
+        }
+
+        // Get all pending organization memberships for this user
+        $organizations = Organization::whereHas('members', function ($query) use ($user): void {
+            $query->where('users.id', $user->id)
+                ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
+        })->get();
+
+        if ($organizations->isEmpty()) {
+            throw new \RuntimeException(__('organization.no_pending_invitations'));
+        }
+
+        // Validate token against any of the organizations
+        $validOrganization = null;
+        $expiresAt = null;
+
+        foreach ($organizations as $org) {
+            $cacheKey = "invitation:{$email}:{$org->id}";
+            $cachedData = Cache::get($cacheKey);
+
+            if ($cachedData && hash('sha256', $token) === $cachedData['token']) {
+                // Check expiration
+                if (now()->greaterThan($cachedData['expires_at'])) {
+                    throw new \RuntimeException(__('organization.invitation_expired'));
+                }
+
+                $validOrganization = $org;
+                $expiresAt = $cachedData['expires_at'];
+                break;
+            }
+        }
+
+        if ($validOrganization === null) {
+            throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
+        }
+
+        return [
+            'valid' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->name,
+            ],
+            'organization' => [
+                'id' => $validOrganization->id,
+                'name' => $validOrganization->name,
+            ],
+            'expires_at' => $expiresAt,
+        ];
+    }
+
+    /**
      * Accept organization invitation with password setup.
+     *
+     * Flow:
+     * 1. Validate token and find user
+     * 2. Change password first
+     * 3. Check user role
+     * 4. Update organization status based on role
+     * 5. Activate user status
      */
     public function acceptInvitationWithPassword(
-        string $email,
         string $token,
         string $password
     ): array {
-        return DB::transaction(function () use ($email, $token, $password) {
-            // Find user
+        return DB::transaction(function () use ($token, $password) {
+            // Step 1: Get email from token
+            $email = $this->getEmailFromToken($token);
+
+            if (! $email) {
+                throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
+            }
+
+            // Step 2: Find user
             $user = User::where('email', $email)->firstOrFail();
 
-            // Get all pending organization memberships for this user
+            // Step 3: Get all pending organization memberships for this user
             $organizations = Organization::whereHas('members', function ($query) use ($user): void {
                 $query->where('users.id', $user->id)
                     ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
@@ -297,13 +447,18 @@ class OrganizationService
                 throw new \RuntimeException(__('organization.no_pending_invitations'));
             }
 
-            // Validate token against any of the organizations
+            // Step 4: Validate token against organizations
             $validOrganization = null;
             foreach ($organizations as $org) {
                 $cacheKey = "invitation:{$email}:{$org->id}";
                 $cachedData = Cache::get($cacheKey);
 
                 if ($cachedData && hash('sha256', $token) === $cachedData['token']) {
+                    // Check expiration
+                    if (now()->greaterThan($cachedData['expires_at'])) {
+                        throw new \RuntimeException(__('organization.invitation_expired'));
+                    }
+
                     $validOrganization = $org;
                     Cache::forget($cacheKey); // Remove used token
                     break;
@@ -314,18 +469,28 @@ class OrganizationService
                 throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
             }
 
-            // Update user password and status
+            // Step 5: Change password FIRST (before any other updates)
             $user->update([
                 'password' => Hash::make($password),
-                'status' => UserStatus::ACTIVE->value,
-                'must_change_password' => false,
                 'email_verified_at' => now(), // Auto-verify email on invitation acceptance
             ]);
 
-            // Activate organization membership
-            $validOrganization->members()->updateExistingPivot($user->id, [
-                'status' => OrganizationUserStatus::ACTIVE->value,
-                'accepted_at' => now(),
+            // Step 6: Check user role and update accordingly
+            $userRole = $user->role->name;
+
+            // Step 7: Update organization membership status based on role
+            if (in_array($userRole, ['organization_admin', 'project_manager', 'member'], true)) {
+                // Activate organization membership
+                $validOrganization->members()->updateExistingPivot($user->id, [
+                    'status' => OrganizationUserStatus::ACTIVE->value,
+                    'accepted_at' => now(),
+                ]);
+            }
+
+            // Step 8: Update user status to active
+            $user->update([
+                'status' => UserStatus::ACTIVE->value,
+                'must_change_password' => false,
             ]);
 
             return [

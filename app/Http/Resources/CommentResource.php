@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Models\Comment;
+use App\Traits\ConvertsModelNames;
 use Illuminate\Http\Request;
 
 /**
@@ -12,6 +13,8 @@ use Illuminate\Http\Request;
  */
 class CommentResource extends BaseApiResource
 {
+    use ConvertsModelNames;
+
     protected function transformData(Request $request): ?object
     {
         return (object) [
@@ -20,7 +23,7 @@ class CommentResource extends BaseApiResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),
-            'commentable_type' => $this->commentable_type,
+            'commentable_type' => $this->getShortModelName($this->commentable_type),
             'commentable_id' => $this->commentable_id,
         ];
     }

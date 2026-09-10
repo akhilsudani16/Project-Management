@@ -7,20 +7,26 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ActivityLogResource;
 use App\Http\Resources\ApiResourceCollection;
+use App\Models\ActivityLog;
 use App\Services\ActivityLogService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         private readonly ActivityLogService $activityLogService,
     ) {}
 
     /**
-     * List activity logs.
+     * List activity logs with role-based filtering.
      */
     public function index(Request $request): ApiResourceCollection
     {
+        $this->authorize('viewAny', ActivityLog::class);
+
         $logs = $this->activityLogService->list(
             user: $request->user(),
             perPage: (int) $request->input('per_page', 50),

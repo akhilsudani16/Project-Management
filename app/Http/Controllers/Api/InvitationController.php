@@ -14,7 +14,7 @@ use App\Services\InvitationService;
 use App\Services\OrganizationService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\Request;
 
 class InvitationController extends Controller
 {
@@ -24,12 +24,11 @@ class InvitationController extends Controller
     ) {}
 
     /**
-     * Unified invitation endpoint.
-     * Supports role-based smart context detection.
+     * Unified invitation endpoint with manager-based assignment.
      *
-     * Super Admin: Must provide role, organization_id, optional project_id
-     * Org Admin: Must provide role (pm/member), optional project_id, org auto-detected
-     * PM: project_id auto-detected if single project, role auto-set to member
+     * Super Admin: Must provide org_admin_id OR project_manager_id
+     * Org Admin: Can provide project_manager_id to assign under PM, org auto-detected
+     * PM: Can provide member_id to assign under specific member (team lead)
      */
     public function invite(InviteRequest $request): JsonResponse
     {
@@ -39,35 +38,77 @@ class InvitationController extends Controller
                 email: $request->input('email'),
                 name: $request->input('name'),
                 role: $request->input('role'),
-                organizationId: $request->input('organization_id'),
-                projectId: $request->input('project_id'),
+                orgAdminId: $request->input('org_admin_id'),
+                projectManagerId: $request->input('project_manager_id'),
+                memberId: $request->input('member_id'),
             );
 
-            return response()->json([
-                'data' => [
-                    'user' => new UserResource($result['user']),
+            return ApiResponse::success(
+                data: [
+                    'user' => (new UserResource($result['user']))->getData($request),
                     'organization' => $result['organization'],
                     'project' => $result['project'],
                     'invitation' => $result['invitation'],
                 ],
-                'message' => __('organization.invitation_sent_successfully'),
-            ], Response::HTTP_CREATED);
+                message: __('organization.invitation_sent_successfully'),
+                statusCode: 201
+            );
         } catch (\RuntimeException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        } catch (\Throwable $e) {
+            logger()->error('Invitation error: '.$e->getMessage(), [
+                'exception' => $e,
+                'email' => $request->input('email'),
+            ]);
+
+            return ApiResponse::fail(
+                message: 'Failed to send invitation. Please try again.',
+                statusCode: 500
+            );
+        }
+    }
+
+    /**
+     * Verify invitation token before accepting.
+     * This is a public endpoint (no auth required).
+     * Allows UI to validate token and show user info before password setup.
+     */
+    public function verifyToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => ['required', 'string', 'min:60', 'max:60'],
+        ]);
+
+        try {
+            $result = $this->organizationService->verifyInvitationToken(
+                token: $request->input('token')
+            );
+
+            return ApiResponse::success(
+                data: $result,
+                message: 'Invitation token is valid',
+                statusCode: 200
+            );
+        } catch (\RuntimeException $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
         }
     }
 
     /**
      * Accept organization invitation and set password.
      * This is a public endpoint (no auth required).
+     * Token contains all necessary information including email.
      */
     public function acceptInvitation(AcceptInvitationRequest $request): JsonResponse
     {
         try {
             $result = $this->organizationService->acceptInvitationWithPassword(
-                email: $request->input('email'),
                 token: $request->input('token'),
                 password: $request->input('password'),
             );
@@ -93,7 +134,6 @@ class InvitationController extends Controller
         } catch (\Throwable $e) {
             logger()->error('Accept invitation error: '.$e->getMessage(), [
                 'exception' => $e,
-                'email' => $request->input('email'),
             ]);
 
             return ApiResponse::fail(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Services\AuthService;
@@ -20,10 +21,18 @@ class ForgotPasswordController extends Controller
      */
     public function send(ForgotPasswordRequest $request): JsonResponse
     {
-        $message = $this->authService->sendResetLink($request->email);
+        try {
+            $message = $this->authService->sendResetLink($request->email);
 
-        return response()->json([
-            'message' => $message,
-        ]);
+            return ApiResponse::success(
+                message: $message,
+                statusCode: 200
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        }
     }
 }

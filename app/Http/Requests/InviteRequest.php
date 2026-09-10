@@ -31,10 +31,10 @@ class InviteRequest extends FormRequest
             'name' => ['nullable', 'string', 'max:255'],
         ];
 
-        // Super Admin - must provide role and organization_id
+        // Super Admin - must provide manager IDs (org_admin_id OR project_manager_id)
         if ($user->isSuperAdmin()) {
             $rules['role'] = [
-                'required',
+                'nullable',
                 'string',
                 Rule::in([
                     UserRole::SUPER_ADMIN->value,
@@ -43,30 +43,29 @@ class InviteRequest extends FormRequest
                     UserRole::MEMBER->value,
                 ]),
             ];
-            $rules['organization_id'] = ['required', 'uuid', 'exists:organizations,id'];
-            $rules['project_id'] = ['nullable', 'uuid', 'exists:projects,id'];
+            // Manager-based assignment ONLY
+            $rules['org_admin_id'] = ['nullable', 'uuid', 'exists:users,id'];
+            $rules['project_manager_id'] = ['nullable', 'uuid', 'exists:users,id'];
         }
-        // Organization Admin - can invite PM or Member
+        // Organization Admin - assigns to Project Manager or Member
         elseif ($user->isOrgAdmin()) {
             $rules['role'] = [
-                'required',
+                'nullable',
                 'string',
                 Rule::in([
                     UserRole::PROJECT_MANAGER->value,
                     UserRole::MEMBER->value,
                 ]),
             ];
-            $rules['project_id'] = ['nullable', 'uuid', 'exists:projects,id'];
+            // Org Admin assigns to PM (provide PM ID)
+            $rules['project_manager_id'] = ['nullable', 'uuid', 'exists:users,id'];
+            // OR assigns to existing member under a project
+            $rules['member_id'] = ['nullable', 'uuid', 'exists:users,id'];
         }
-        // Project Manager - can only invite Member
+        // Project Manager - assigns to team member
         elseif ($user->isProjectManager()) {
-            // Check if PM has multiple projects
-            $projectsCount = $user->projects()->count();
-            if ($projectsCount > 1) {
-                $rules['project_id'] = ['required', 'uuid', 'exists:projects,id'];
-            } else {
-                $rules['project_id'] = ['nullable', 'uuid', 'exists:projects,id'];
-            }
+            // PM assigns to a specific team member (optional)
+            $rules['member_id'] = ['nullable', 'uuid', 'exists:users,id'];
         }
 
         return $rules;
@@ -82,10 +81,9 @@ class InviteRequest extends FormRequest
             'email.email' => 'Please provide a valid email address.',
             'role.required' => 'Role is required.',
             'role.in' => 'Invalid role selected.',
-            'organization_id.required' => 'Organization is required.',
-            'organization_id.exists' => 'Selected organization does not exist.',
-            'project_id.required' => 'Project is required when you manage multiple projects.',
-            'project_id.exists' => 'Selected project does not exist.',
+            'org_admin_id.exists' => 'Selected Organization Admin does not exist.',
+            'project_manager_id.exists' => 'Selected Project Manager does not exist.',
+            'member_id.exists' => 'Selected Member does not exist.',
         ];
     }
 }

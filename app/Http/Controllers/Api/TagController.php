@@ -11,6 +11,7 @@ use App\Http\Requests\Tag\UpdateTagRequest;
 use App\Http\Resources\ApiResourceCollection;
 use App\Http\Resources\TagResource;
 use App\Models\Organization;
+use App\Models\Project;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Services\TagService;
@@ -110,6 +111,34 @@ class TagController extends Controller
         $this->authorize('update', $task);
 
         $this->tagService->detachFromTask($tag, $task);
+
+        return ApiResponse::success(
+            message: __('tag.detached_successfully')
+        );
+    }
+
+    /**
+     * Attach tag to project.
+     */
+    public function attachToProject(Request $request, Tag $tag, Project $project): JsonResponse
+    {
+        $this->authorize('update', $project);
+
+        $attached = $this->tagService->attachToProject($tag, $project);
+
+        return ApiResponse::success(
+            message: $attached ? __('tag.attached_successfully') : __('tag.already_attached')
+        );
+    }
+
+    /**
+     * Detach tag from project.
+     */
+    public function detachFromProject(Request $request, Tag $tag, Project $project): JsonResponse
+    {
+        $this->authorize('update', $project);
+
+        $this->tagService->detachFromProject($tag, $project);
 
         return ApiResponse::success(
             message: __('tag.detached_successfully')

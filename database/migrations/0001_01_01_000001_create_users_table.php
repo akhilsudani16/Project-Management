@@ -31,6 +31,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
 
             $table->uuid('created_by')->nullable();
+            $table->uuid('assigned_by')->nullable();
             $table->uuid('deleted_by')->nullable();
 
             $table->rememberToken();

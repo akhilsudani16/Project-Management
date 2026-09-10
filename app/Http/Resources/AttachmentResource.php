@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\Attachment;
+use App\Traits\ConvertsModelNames;
 use Illuminate\Http\Request;
 
 /**
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
  */
 class AttachmentResource extends BaseApiResource
 {
+    use ConvertsModelNames;
+
     protected function transformData(Request $request): ?object
     {
         return (object) [
@@ -17,7 +20,7 @@ class AttachmentResource extends BaseApiResource
             'file_name' => $this->resource->file_name,
             'file_size' => $this->resource->file_size,
             'mime_type' => $this->resource->mime_type,
-            'attachable_type' => $this->resource->attachable_type,
+            'attachable_type' => $this->getShortModelName($this->resource->attachable_type),
             'attachable_id' => $this->resource->attachable_id,
             'user' => $this->when($this->relationLoaded('user'), function () {
                 return (object) [

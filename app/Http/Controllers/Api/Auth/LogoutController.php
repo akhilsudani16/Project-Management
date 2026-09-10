@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -22,8 +23,9 @@ class LogoutController extends Controller
     {
         $this->authService->logout($request->user());
 
-        return response()->json([
-            'message' => __('auth.logout_success'),
-        ]);
+        return ApiResponse::success(
+            message: __('auth.logout_success'),
+            statusCode: 200
+        );
     }
 }

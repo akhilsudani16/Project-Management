@@ -107,6 +107,11 @@ class ProjectService
 
     /**
      * Update an existing project.
+     * Only updates fields that are present in the request data.
+     *
+     * Restrictions:
+     * - PM cannot change organization_id
+     * - PM cannot change ownership or sensitive fields
      */
     public function update(Project $project, array $data, User $updater): Project
     {
@@ -117,14 +122,19 @@ class ProjectService
             }
         }
 
-        $project->update(array_filter([
-            'organization_id' => $data['organization_id'] ?? null,
-            'name' => $data['name'] ?? null,
-            'description' => $data['description'] ?? null,
-            'status' => $data['status'] ?? null,
-            'start_date' => $data['start_date'] ?? null,
-            'end_date' => $data['end_date'] ?? null,
-        ], fn ($value) => $value !== null));
+        // Define allowed fields based on user role
+        if ($updater->isProjectManager()) {
+            // PM can only update: name, description, status, dates
+            $allowedFields = ['name', 'description', 'status', 'start_date', 'end_date'];
+        } else {
+            // Super Admin and Org Admin can update all fields
+            $allowedFields = ['organization_id', 'name', 'description', 'status', 'start_date', 'end_date'];
+        }
+
+        // Only update fields that exist in the request and are allowed for user role
+        $updateData = array_intersect_key($data, array_flip($allowedFields));
+
+        $project->update($updateData);
 
         return $project->fresh();
     }

@@ -8,19 +8,22 @@ use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Traits\ConvertsModelNames;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreAttachmentRequest extends FormRequest
 {
+    use ConvertsModelNames;
+
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
         // Check if user can access the attachable resource
-        $attachableType = $this->input('attachable_type');
+        $attachableType = $this->getFullModelClass($this->input('attachable_type'));
         $attachableId = $this->input('attachable_id');
 
         if (! $attachableType || ! $attachableId) {
@@ -28,10 +31,10 @@ class StoreAttachmentRequest extends FormRequest
         }
 
         return match ($attachableType) {
-            'App\\Models\\User' => $this->authorizeUserAttachment($attachableId),
-            'App\\Models\\Project' => $this->authorizeProjectAttachment($attachableId),
-            'App\\Models\\Task' => $this->authorizeTaskAttachment($attachableId),
-            'App\\Models\\Comment' => $this->authorizeCommentAttachment($attachableId),
+            User::class => $this->authorizeUserAttachment($attachableId),
+            Project::class => $this->authorizeProjectAttachment($attachableId),
+            Task::class => $this->authorizeTaskAttachment($attachableId),
+            Comment::class => $this->authorizeCommentAttachment($attachableId),
             default => false,
         };
     }
@@ -53,15 +56,27 @@ class StoreAttachmentRequest extends FormRequest
             'attachable_type' => [
                 'required',
                 'string',
-                Rule::in([
-                    'App\\Models\\User',
-                    'App\\Models\\Project',
-                    'App\\Models\\Task',
-                    'App\\Models\\Comment',
-                ]),
+                Rule::in(['User', 'Project', 'Task', 'Comment']),
             ],
             'attachable_id' => ['required', 'string', 'uuid'],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Convert short model name to fully qualified class name for processing
+        if ($this->has('attachable_type')) {
+            $fullClassName = $this->getFullModelClass($this->input('attachable_type'));
+
+            if ($fullClassName) {
+                $this->merge([
+                    'attachable_type_full' => $fullClassName,
+                ]);
+            }
+        }
     }
 
     private function authorizeUserAttachment(string $userId): bool

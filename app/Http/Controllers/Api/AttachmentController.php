@@ -29,9 +29,12 @@ class AttachmentController extends Controller
      */
     public function store(StoreAttachmentRequest $request): JsonResponse
     {
+        // Get the full model class name that was prepared in the request
+        $fullClassName = $request->input('attachable_type_full') ?? $request->input('attachable_type');
+
         $attachment = $this->attachmentService->upload(
             file: $request->file('file'),
-            attachableType: $request->input('attachable_type'),
+            attachableType: $fullClassName,
             attachableId: $request->input('attachable_id'),
             user: $request->user(),
         );

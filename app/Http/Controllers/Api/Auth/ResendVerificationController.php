@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Auth;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -20,10 +21,18 @@ class ResendVerificationController extends Controller
      */
     public function resend(Request $request): JsonResponse
     {
-        $this->authService->resendVerification($request->user());
+        try {
+            $this->authService->resendVerification($request->user());
 
-        return response()->json([
-            'message' => __('verification.sent'),
-        ]);
+            return ApiResponse::success(
+                message: __('verification.sent'),
+                statusCode: 200
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        }
     }
 }
