@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Organization\InviteUserRequest;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
 use App\Http\Requests\Organization\UpdateOrganizationRequest;
 use App\Http\Resources\ApiResourceCollection;
@@ -18,7 +17,9 @@ use App\Services\OrganizationService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 
+#[Middleware('auth:sanctum')]
 class OrganizationController extends Controller
 {
     use AuthorizesRequests;
@@ -132,29 +133,6 @@ class OrganizationController extends Controller
         return (new ApiResourceCollection($members))
             ->setResourceClass(UserResource::class)
             ->withMessage(__('organization.members_retrieved'));
-    }
-
-    /**
-     * Invite user to organization.
-     */
-    public function inviteUser(InviteUserRequest $request, Organization $organization): JsonResponse
-    {
-        $result = $this->organizationService->inviteUser(
-            organization: $organization,
-            email: $request->input('email'),
-            roleName: $request->input('role'),
-            invitedBy: $request->user(),
-            name: $request->input('name'),
-        );
-
-        return ApiResponse::success(
-            data: [
-                'user' => (new UserResource($result['user']))->getData($request),
-                'invitation' => $result['invitation'],
-            ],
-            message: __('organization.invitation_sent_successfully'),
-            statusCode: 201
-        );
     }
 
     /**

@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -62,6 +63,15 @@ class InvitationService
             // Step 6: Generate invitation token
             $invitationToken = Str::random(60);
             $expiresAt = now()->addDays(7);
+
+            // Store invitation token in cache (7 days expiry)
+            $cacheKey = "invitation:{$user->email}:{$context['organization']->id}";
+            Cache::put($cacheKey, [
+                'token' => hash('sha256', $invitationToken), // Store hashed token
+                'organization_id' => $context['organization']->id,
+                'email' => $user->email,
+                'expires_at' => $expiresAt,
+            ], $expiresAt);
 
             // TODO: Send invitation email
             // Mail::to($user->email)->send(new UserInvitation(...));
