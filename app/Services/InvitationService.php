@@ -81,7 +81,7 @@ class InvitationService
                 'token' => hash('sha256', $invitationToken), // Store hashed token
                 'organization_id' => $context['organization']->id,
                 'email' => $user->email,
-                'expires_at' => $expiresAt,
+                'expires_at' => $expiresAt->toISOString(), // Store as string to avoid serialization issues
             ], $expiresAt);
 
             // Send invitation email

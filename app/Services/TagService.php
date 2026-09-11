@@ -43,7 +43,6 @@ class TagService
         $tag = Tag::create([
             'organization_id' => $data['organization_id'],
             'name' => $data['name'],
-            'color' => $data['color'] ?? '#3B82F6',
         ]);
 
         // Optionally attach to resource during creation
@@ -66,7 +65,7 @@ class TagService
     public function update(Tag $tag, array $data): Tag
     {
         // Only update fields that exist in the request
-        $updateData = array_intersect_key($data, array_flip(['name', 'color']));
+        $updateData = array_intersect_key($data, array_flip(['name']));
 
         $tag->update($updateData);
 
@@ -92,7 +91,7 @@ class TagService
      */
     public function attachToTask(Tag $tag, Task $task): bool
     {
-        if (! $task->tags()->where('tags.id', $tag->id)->exists()) {
+        if (! $task->tags()->where('tag.id', $tag->id)->exists()) {
             $task->tags()->attach($tag->id, ['id' => Str::uuid()]);
 
             return true;
@@ -114,7 +113,7 @@ class TagService
      */
     public function attachToProject(Tag $tag, $project): bool
     {
-        if (! $project->tags()->where('tags.id', $tag->id)->exists()) {
+        if (! $project->tags()->where('tag.id', $tag->id)->exists()) {
             $project->tags()->attach($tag->id, ['id' => Str::uuid()]);
 
             return true;

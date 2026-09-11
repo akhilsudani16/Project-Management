@@ -54,7 +54,7 @@ class TagController extends Controller
             creator: $request->user(),
         );
 
-        return (new TagResource($tag->load(['organization', 'createdBy'])))
+        return (new TagResource($tag->load('organization')))
             ->withMessage(__('tag.created_successfully'))
             ->withStatusCode(201)
             ->toResponse($request);

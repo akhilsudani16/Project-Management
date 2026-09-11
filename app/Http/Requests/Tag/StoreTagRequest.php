@@ -22,7 +22,6 @@ class StoreTagRequest extends FormRequest
         return [
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
             'name' => ['required', 'string', 'max:50'],
-            'color' => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
 
             // Optional: Attach tag to resource during creation
             'taggable_type' => [

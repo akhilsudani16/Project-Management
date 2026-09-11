@@ -32,11 +32,13 @@ Route::post('invite/verify', [InvitationController::class, 'verifyToken'])
 Route::post('invite/accept', [InvitationController::class, 'acceptInvitation'])
     ->name('invite.accept');
 
+// Public resend verification (for unverified users who can't login)
+Route::post('resend-verification', [ResendVerificationController::class, 'resend'])->name('verification.send');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::prefix('profile')->group(function () {
         Route::post('change-password', [ChangePasswordController::class, 'change'])->name('password.change');
-        Route::post('resend-verification', [ResendVerificationController::class, 'resend'])->name('verification.send');
     });
 
     Route::prefix('sessions')->group(function () {

@@ -49,7 +49,7 @@ class CommentService
             'commentable_type' => get_class($commentable),
             'commentable_id' => $commentable->id,
             'user_id' => $creator->id,
-            'content' => $data['content'],
+            'body' => $data['body'],
         ]);
     }
 
@@ -59,7 +59,7 @@ class CommentService
     public function update(Comment $comment, array $data): Comment
     {
         $comment->update([
-            'content' => $data['content'],
+            'body' => $data['body'],
         ]);
 
         return $comment->fresh();

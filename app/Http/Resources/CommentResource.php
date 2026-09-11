@@ -19,7 +19,7 @@ class CommentResource extends BaseApiResource
     {
         return (object) [
             'id' => $this->id,
-            'content' => $this->content,
+            'body' => $this->body,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'user' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),

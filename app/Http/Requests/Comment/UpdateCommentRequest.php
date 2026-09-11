@@ -25,7 +25,7 @@ class UpdateCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'content' => ['required', 'string', 'max:5000'],
+            'body' => ['required', 'string', 'max:5000'],
         ];
     }
 
@@ -37,8 +37,8 @@ class UpdateCommentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'content.required' => __('validation.required', ['attribute' => __('comment.content')]),
-            'content.max' => __('validation.max.string', ['attribute' => __('comment.content'), 'max' => 5000]),
+            'body.required' => __('validation.required', ['attribute' => __('comment.body')]),
+            'body.max' => __('validation.max.string', ['attribute' => __('comment.body'), 'max' => 5000]),
         ];
     }
 }

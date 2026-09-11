@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUser;
 use App\Models\Role;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +78,6 @@ class OrganizationService
     {
         return Organization::create([
             'name' => $data['name'],
-            'description' => $data['description'] ?? null,
             'status' => $data['status'] ?? OrganizationStatus::ACTIVE->value,
             'created_by' => $creator->id,
         ]);
@@ -89,10 +89,23 @@ class OrganizationService
      */
     public function update(Organization $organization, array $data): Organization
     {
-        // Only update fields that exist in the request
-        $updateData = array_intersect_key($data, array_flip(['name', 'description', 'status']));
+        // Only update fields that are present in the request (exclude null values for optional fields)
+        $allowedFields = ['name', 'status'];
+        $updateData = [];
 
-        $organization->update($updateData);
+        foreach ($allowedFields as $field) {
+            // Check if field exists in data and has a non-null value
+            if (array_key_exists($field, $data)) {
+                // Include the field even if it's an empty string, but exclude null
+                if ($data[$field] !== null) {
+                    $updateData[$field] = $data[$field];
+                }
+            }
+        }
+
+        if (! empty($updateData)) {
+            $organization->update($updateData);
+        }
 
         return $organization->fresh();
     }
@@ -317,16 +330,20 @@ class OrganizationService
         $hashedToken = hash('sha256', $token);
 
         // Search through all users with pending invitations
-        $pendingUsers = User::whereHas('organizations', function ($query): void {
-            $query->wherePivot('status', OrganizationUserStatus::PENDING->value);
+        $pendingUsers = User::whereIn('id', function ($query) {
+            $query->select('user_id')
+                ->from('organization_user')
+                ->where('status', OrganizationUserStatus::PENDING->value);
         })->get();
 
         foreach ($pendingUsers as $user) {
             // Get organizations for this user
-            $organizations = Organization::whereHas('members', function ($query) use ($user): void {
-                $query->where('users.id', $user->id)
-                    ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
-            })->get();
+            $organizationIds = \DB::table('organization_user')
+                ->where('user_id', $user->id)
+                ->where('status', OrganizationUserStatus::PENDING->value)
+                ->pluck('organization_id');
+
+            $organizations = Organization::whereIn('id', $organizationIds)->get();
 
             // Check cache for each organization
             foreach ($organizations as $org) {
@@ -363,10 +380,12 @@ class OrganizationService
         }
 
         // Get all pending organization memberships for this user
-        $organizations = Organization::whereHas('members', function ($query) use ($user): void {
-            $query->where('users.id', $user->id)
-                ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
-        })->get();
+        $organizationIds = \DB::table('organization_user')
+            ->where('user_id', $user->id)
+            ->where('status', OrganizationUserStatus::PENDING->value)
+            ->pluck('organization_id');
+
+        $organizations = Organization::whereIn('id', $organizationIds)->get();
 
         if ($organizations->isEmpty()) {
             throw new \RuntimeException(__('organization.no_pending_invitations'));
@@ -381,8 +400,9 @@ class OrganizationService
             $cachedData = Cache::get($cacheKey);
 
             if ($cachedData && hash('sha256', $token) === $cachedData['token']) {
-                // Check expiration
-                if (now()->greaterThan($cachedData['expires_at'])) {
+                // Check expiration (parse string back to Carbon)
+                $expirationDate = Carbon::parse($cachedData['expires_at']);
+                if (now()->greaterThan($expirationDate)) {
                     throw new \RuntimeException(__('organization.invitation_expired'));
                 }
 
@@ -438,10 +458,12 @@ class OrganizationService
             $user = User::where('email', $email)->firstOrFail();
 
             // Step 3: Get all pending organization memberships for this user
-            $organizations = Organization::whereHas('members', function ($query) use ($user): void {
-                $query->where('users.id', $user->id)
-                    ->where('organization_user.status', OrganizationUserStatus::PENDING->value);
-            })->get();
+            $organizationIds = \DB::table('organization_user')
+                ->where('user_id', $user->id)
+                ->where('status', OrganizationUserStatus::PENDING->value)
+                ->pluck('organization_id');
+
+            $organizations = Organization::whereIn('id', $organizationIds)->get();
 
             if ($organizations->isEmpty()) {
                 throw new \RuntimeException(__('organization.no_pending_invitations'));
@@ -454,8 +476,9 @@ class OrganizationService
                 $cachedData = Cache::get($cacheKey);
 
                 if ($cachedData && hash('sha256', $token) === $cachedData['token']) {
-                    // Check expiration
-                    if (now()->greaterThan($cachedData['expires_at'])) {
+                    // Check expiration (parse string back to Carbon)
+                    $expirationDate = Carbon::parse($cachedData['expires_at']);
+                    if (now()->greaterThan($expirationDate)) {
                         throw new \RuntimeException(__('organization.invitation_expired'));
                     }
 

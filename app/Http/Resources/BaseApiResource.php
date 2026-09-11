@@ -20,6 +20,8 @@ abstract class BaseApiResource extends JsonResource
 
     protected ?array $meta = null;
 
+    protected ?array $additionalData = null;
+
     protected int $statusCode = Response::HTTP_OK;
 
     public function withStatus(ApiResponseStatus $status): static
@@ -50,6 +52,13 @@ abstract class BaseApiResource extends JsonResource
         return $this;
     }
 
+    public function additional(array $data): static
+    {
+        $this->additionalData = $data;
+
+        return $this;
+    }
+
     public function withStatusCode(int $statusCode): static
     {
         $this->statusCode = $statusCode;
@@ -59,13 +68,22 @@ abstract class BaseApiResource extends JsonResource
 
     public function toArray(Request $request): array
     {
-        return [
+        $response = [
             'status' => $this->status->value,
             'message' => $this->message,
             'data' => $this->transformData($request),
             'errors' => $this->errors ? (object) $this->errors : null,
             'meta' => $this->meta ? (object) $this->meta : null,
         ];
+
+        // Merge additional data into 'data' field
+        if ($this->additionalData !== null && is_array($response['data'])) {
+            $response['data'] = array_merge($response['data'], $this->additionalData);
+        } elseif ($this->additionalData !== null && is_object($response['data'])) {
+            $response['data'] = (object) array_merge((array) $response['data'], $this->additionalData);
+        }
+
+        return $response;
     }
 
     public function toResponse($request): JsonResponse

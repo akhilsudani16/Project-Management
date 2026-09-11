@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $commentable_type
  * @property string|null $commentable_id
  * @property string $user_id
- * @property string $content
+ * @property string $body
  * @property string|null $deleted_by
  * @property Carbon|null $deleted_at
  * @property Carbon $created_at

@@ -17,7 +17,6 @@ class UpdateTagRequest extends FormRequest
     {
         return [
             'name' => ['nullable', 'string', 'max:50'],
-            'color' => ['nullable', 'string', 'regex:/^#[0-9A-F]{6}$/i'],
         ];
     }
 }

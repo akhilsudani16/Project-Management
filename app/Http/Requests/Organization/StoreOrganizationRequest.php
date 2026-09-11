@@ -29,7 +29,6 @@ class StoreOrganizationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:organizations,name'],
-            'description' => ['nullable', 'string', 'max:1000'],
             'status' => ['nullable', 'string', Rule::in(OrganizationStatus::values())],
         ];
     }
@@ -45,7 +44,6 @@ class StoreOrganizationRequest extends FormRequest
             'name.required' => __('validation.required', ['attribute' => __('organization.name')]),
             'name.unique' => __('validation.unique', ['attribute' => __('organization.name')]),
             'name.max' => __('validation.max.string', ['attribute' => __('organization.name'), 'max' => 255]),
-            'description.max' => __('validation.max.string', ['attribute' => __('organization.description'), 'max' => 1000]),
         ];
     }
 }

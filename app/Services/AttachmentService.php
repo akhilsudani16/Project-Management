@@ -36,10 +36,7 @@ class AttachmentService
             'attachable_type' => $attachableType,
             'attachable_id' => $attachableId,
             'user_id' => $user->id,
-            'file_name' => $originalName,
-            'file_path' => $path,
-            'file_size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
+            'path' => $path,
         ]);
 
         return $attachment;
@@ -51,14 +48,17 @@ class AttachmentService
     public function download(Attachment $attachment): StreamedResponse
     {
         // Check if file exists
-        if (! Storage::disk('private')->exists($attachment->file_path)) {
+        if (! Storage::disk('private')->exists($attachment->path)) {
             abort(404, 'File not found.');
         }
 
+        // Extract original filename from path
+        $fileName = basename($attachment->path);
+
         // Return file download response
         return Storage::disk('private')->download(
-            $attachment->file_path,
-            $attachment->file_name
+            $attachment->path,
+            $fileName
         );
     }
 
@@ -68,8 +68,8 @@ class AttachmentService
     public function delete(Attachment $attachment, User $deletedBy): void
     {
         // Delete physical file
-        if (Storage::disk('private')->exists($attachment->file_path)) {
-            Storage::disk('private')->delete($attachment->file_path);
+        if (Storage::disk('private')->exists($attachment->path)) {
+            Storage::disk('private')->delete($attachment->path);
         }
 
         // Soft delete record

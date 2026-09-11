@@ -1,0 +1,1911 @@
+{
+	"info": {
+		"_postman_id": "project-management-api",
+		"name": "Project Management API",
+		"description": "Complete API collection for Laravel Project Management System with automatic token management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/api",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Automatically save token from login response",
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.collectionVariables.set('auth_token', jsonData.data.token);",
+									"        console.log('✅ Token saved:', jsonData.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Token is automatically saved for subsequent requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Logout current session (revokes current token only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout All Sessions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout-all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout-all"
+							]
+						},
+						"description": "Logout all sessions (revokes all tokens)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Sessions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							]
+						},
+						"description": "Get list of all active sessions/tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Revoke Specific Session",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/sessions/:tokenId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":tokenId"
+							],
+							"variable": [
+								{
+									"key": "tokenId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Revoke a specific session by token ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile"
+							]
+						},
+						"description": "Get current user profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"current_password\": \"oldpassword123\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/profile/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profile",
+								"change-password"
+							]
+						},
+						"description": "Change current user password"
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/forgot-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Send password reset link"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"token\": \"reset-token-from-email\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Reset password using token from email"
+					},
+					"response": []
+				},
+				{
+					"name": "Resend Verification Email",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/resend-verification",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"resend-verification"
+							]
+						},
+						"description": "Resend email verification notification (PUBLIC - no token required)"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints including login, logout, sessions, and password management"
+		},
+		{
+			"name": "Invitations",
+			"item": [
+				{
+					"name": "Send Invitation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"newuser@example.com\",\n    \"name\": \"New User\",\n    \"project_manager_id\": \"pm-uuid-here\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/invite",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"invite"
+							]
+						},
+						"description": "Invite user to organization/project (manager-based)"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Invitation Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"invitation-token-from-email\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/invite/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"invite",
+								"verify"
+							]
+						},
+						"description": "Verify invitation token before password setup"
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Invitation",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"invitation-token-from-email\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/invite/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"invite",
+								"accept"
+							]
+						},
+						"description": "Accept invitation and set password"
+					},
+					"response": []
+				}
+			],
+			"description": "Invitation management endpoints"
+		},
+		{
+			"name": "Organizations",
+			"item": [
+				{
+					"name": "List Organizations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations"
+							]
+						},
+						"description": "Get list of organizations (scoped by role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Organization",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"TechCorp\",\n    \"description\": \"Technology company\",\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/organizations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations"
+							]
+						},
+						"description": "Create new organization (Super Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organization",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "org-uuid"
+								}
+							]
+						},
+						"description": "Get organization details"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Organization",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"TechCorp Updated\",\n    \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/organizations/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "org-uuid"
+								}
+							]
+						},
+						"description": "Update organization (Super Admin/Org Admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Organization",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "org-uuid"
+								}
+							]
+						},
+						"description": "Delete organization (Super Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "List Organization Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations/:id/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":id",
+								"users"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "org-uuid"
+								}
+							]
+						},
+						"description": "Get organization members"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Member",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/organizations/:orgId/users/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":orgId",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "org-uuid"
+								},
+								{
+									"key": "userId",
+									"value": "user-uuid"
+								}
+							]
+						},
+						"description": "Update organization member"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Member",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations/:orgId/users/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":orgId",
+								"users",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "orgId",
+									"value": "org-uuid"
+								},
+								{
+									"key": "userId",
+									"value": "user-uuid"
+								}
+							]
+						},
+						"description": "Remove member from organization"
+					},
+					"response": []
+				},
+				{
+					"name": "List Organization Tags",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/organizations/:id/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"organizations",
+								":id",
+								"tags"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "org-uuid"
+								}
+							]
+						},
+						"description": "Get organization tags"
+					},
+					"response": []
+				}
+			],
+			"description": "Organization management endpoints"
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "List Projects",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Get list of projects (scoped by role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"organization_id\": \"org-uuid\",\n    \"name\": \"Mobile App\",\n    \"description\": \"iOS and Android app development\",\n    \"status\": \"active\",\n    \"start_date\": \"2026-09-01\",\n    \"end_date\": \"2027-03-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects"
+							]
+						},
+						"description": "Create new project"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Project",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Get project details"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Project",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Mobile App V2\",\n    \"description\": \"Updated description\",\n    \"status\": \"in_progress\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Update project (PM can update but not change org)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Delete project"
+					},
+					"response": []
+				},
+				{
+					"name": "List Project Members",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects/:id/members",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id",
+								"members"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Get project members"
+					},
+					"response": []
+				},
+				{
+					"name": "Assign User to Project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"user-uuid\",\n    \"project_role\": \"developer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/:id/members",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id",
+								"members"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Assign user to project"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User from Project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects/:projectId/members/:userId",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":projectId",
+								"members",
+								":userId"
+							],
+							"variable": [
+								{
+									"key": "projectId",
+									"value": "project-uuid"
+								},
+								{
+									"key": "userId",
+									"value": "user-uuid"
+								}
+							]
+						},
+						"description": "Remove user from project"
+					},
+					"response": []
+				},
+				{
+					"name": "List Project Comments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/projects/:id/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id",
+								"comments"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Get project comments"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Project Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Project is progressing well\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/projects/:id/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"projects",
+								":id",
+								"comments"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Add comment to project"
+					},
+					"response": []
+				}
+			],
+			"description": "Project management endpoints"
+		},
+		{
+			"name": "Tasks",
+			"item": [
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						},
+						"description": "Get list of tasks (scoped by role)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"project_id\": \"project-uuid\",\n    \"title\": \"Design homepage\",\n    \"description\": \"Create UI mockup for homepage\",\n    \"status\": \"todo\",\n    \"priority\": \"high\",\n    \"due_date\": \"2026-09-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks"
+							]
+						},
+						"description": "Create new task"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Get task details"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Design homepage v2\",\n    \"status\": \"in_progress\",\n    \"progress_percentage\": 50\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Update task (Members can only update status/progress)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Delete task"
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Task to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"assigned_to\": \"user-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/:id/assign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id",
+								"assign"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Assign task to user"
+					},
+					"response": []
+				},
+				{
+					"name": "Unassign Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/:id/unassign",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id",
+								"unassign"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Unassign task from user"
+					},
+					"response": []
+				},
+				{
+					"name": "List Task Comments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tasks/:id/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id",
+								"comments"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Get task comments"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Task Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Task completed successfully\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tasks/:id/comments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tasks",
+								":id",
+								"comments"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Add comment to task"
+					},
+					"response": []
+				}
+			],
+			"description": "Task management endpoints"
+		},
+		{
+			"name": "Comments",
+			"item": [
+				{
+					"name": "Update Comment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Updated comment text\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/comments/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "comment-uuid"
+								}
+							]
+						},
+						"description": "Update comment (own comments only for members)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/comments/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"comments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "comment-uuid"
+								}
+							]
+						},
+						"description": "Delete comment (own comments only for members)"
+					},
+					"response": []
+				}
+			],
+			"description": "Comment management endpoints"
+		},
+		{
+			"name": "Tags",
+			"item": [
+				{
+					"name": "Create Tag",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"organization_id\": \"org-uuid\",\n    \"name\": \"Frontend\",\n    \"color\": \"#3B82F6\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						},
+						"description": "Create new tag"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tag",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Frontend Dev\",\n    \"color\": \"#2563EB\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "tag-uuid"
+								}
+							]
+						},
+						"description": "Update tag"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tag",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "tag-uuid"
+								}
+							]
+						},
+						"description": "Delete tag"
+					},
+					"response": []
+				},
+				{
+					"name": "Attach Tag to Project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/:tagId/projects/:projectId/attach",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":tagId",
+								"projects",
+								":projectId",
+								"attach"
+							],
+							"variable": [
+								{
+									"key": "tagId",
+									"value": "tag-uuid"
+								},
+								{
+									"key": "projectId",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Attach tag to project"
+					},
+					"response": []
+				},
+				{
+					"name": "Detach Tag from Project",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/:tagId/projects/:projectId/detach",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":tagId",
+								"projects",
+								":projectId",
+								"detach"
+							],
+							"variable": [
+								{
+									"key": "tagId",
+									"value": "tag-uuid"
+								},
+								{
+									"key": "projectId",
+									"value": "project-uuid"
+								}
+							]
+						},
+						"description": "Detach tag from project"
+					},
+					"response": []
+				},
+				{
+					"name": "Attach Tag to Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/:tagId/tasks/:taskId/attach",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":tagId",
+								"tasks",
+								":taskId",
+								"attach"
+							],
+							"variable": [
+								{
+									"key": "tagId",
+									"value": "tag-uuid"
+								},
+								{
+									"key": "taskId",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Attach tag to task"
+					},
+					"response": []
+				},
+				{
+					"name": "Detach Tag from Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tags/:tagId/tasks/:taskId/detach",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								":tagId",
+								"tasks",
+								":taskId",
+								"detach"
+							],
+							"variable": [
+								{
+									"key": "tagId",
+									"value": "tag-uuid"
+								},
+								{
+									"key": "taskId",
+									"value": "task-uuid"
+								}
+							]
+						},
+						"description": "Detach tag from task"
+					},
+					"response": []
+				}
+			],
+			"description": "Tag management endpoints"
+		},
+		{
+			"name": "Attachments",
+			"item": [
+				{
+					"name": "Upload Attachment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "attachable_type",
+									"value": "Project",
+									"type": "text"
+								},
+								{
+									"key": "attachable_id",
+									"value": "project-uuid",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/attachments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attachments"
+							]
+						},
+						"description": "Upload attachment to project/task/comment/user"
+					},
+					"response": []
+				},
+				{
+					"name": "Download Attachment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/attachments/:id/download",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attachments",
+								":id",
+								"download"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "attachment-uuid"
+								}
+							]
+						},
+						"description": "Download attachment (re-checks authorization)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attachment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/attachments/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"attachments",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "attachment-uuid"
+								}
+							]
+						},
+						"description": "Delete attachment"
+					},
+					"response": []
+				}
+			],
+			"description": "Attachment management endpoints"
+		},
+		{
+			"name": "Activity Logs",
+			"item": [
+				{
+					"name": "List Activity Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/activity-logs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"activity-logs"
+							]
+						},
+						"description": "Get activity logs (role-based filtering: SA=all, OA=org, PM=projects, Member=own)"
+					},
+					"response": []
+				}
+			],
+			"description": "Activity log endpoints with role-based filtering"
+		},
+		{
+			"name": "Restore",
+			"item": [
+				{
+					"name": "Restore Deleted Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"Project\",\n    \"id\": \"project-uuid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/restore",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"restore"
+							]
+						},
+						"description": "Restore soft-deleted project/task/comment"
+					},
+					"response": []
+				}
+			],
+			"description": "Restore soft-deleted items"
+		}
+	]
+}

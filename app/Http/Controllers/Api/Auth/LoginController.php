@@ -31,7 +31,7 @@ class LoginController extends Controller
         return (new UserResource($result['user']))
             ->minimal()
             ->withMessage(__('auth.login_success'))
-            ->withMeta(['token' => $result['token']])
+            ->additional(['token' => $result['token']])
             ->toResponse($request);
     }
 }
