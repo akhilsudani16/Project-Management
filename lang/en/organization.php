@@ -18,4 +18,6 @@ return [
     'invalid_or_expired_invitation' => 'Invalid or expired invitation token.',
     'member_updated_successfully' => 'Member role updated successfully.',
     'member_removed_successfully' => 'Member removed from organization successfully.',
+    'user_not_found' => 'User not found.',
+    'invitation_expired' => 'Invitation has expired.',
 ];
