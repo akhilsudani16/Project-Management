@@ -12,7 +12,6 @@ use App\Models\Organization;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -29,17 +28,15 @@ class InvitationService
         ?string $name = null,
         ?string $role = null,
         ?string $orgAdminId = null,
-        ?string $projectManagerId = null,
-        ?string $memberId = null
+        ?string $projectManagerId = null
     ): array {
-        return DB::transaction(function () use ($inviter, $email, $name, $role, $orgAdminId, $projectManagerId, $memberId) {
+        return DB::transaction(function () use ($inviter, $email, $name, $role, $orgAdminId, $projectManagerId) {
             // Step 1: Determine context based on inviter role and manager assignment
             $context = $this->determineInvitationContext(
                 inviter: $inviter,
                 role: $role,
                 orgAdminId: $orgAdminId,
-                projectManagerId: $projectManagerId,
-                memberId: $memberId
+                projectManagerId: $projectManagerId
             );
 
             // Step 2: Validate permissions
@@ -71,26 +68,22 @@ class InvitationService
                 );
             }
 
-            // Step 6: Generate invitation token
+            // Step 6: Generate invitation token and store in user table
             $invitationToken = Str::random(60);
-            $expiresAt = now()->addDays(7);
 
-            // Store invitation token in cache (7 days expiry)
-            $cacheKey = "invitation:{$user->email}:{$context['organization']->id}";
-            Cache::put($cacheKey, [
-                'token' => hash('sha256', $invitationToken), // Store hashed token
-                'organization_id' => $context['organization']->id,
-                'email' => $user->email,
-                'expires_at' => $expiresAt->toISOString(), // Store as string to avoid serialization issues
-            ], $expiresAt);
+            // Store hashed token directly in user table
+            $user->update([
+                'invitation_token' => hash('sha256', $invitationToken),
+                'invitation_accepted_at' => null, // Reset if re-inviting
+            ]);
 
             // Send invitation email
             Mail::to($user->email)->send(new InvitationMail(
                 user: $user,
                 organization: $context['organization'],
                 project: $context['project'],
-                token: $invitationToken,
-                expiresAt: $expiresAt->toISOString(),
+                token: $invitationToken, // Send plain token in email
+                expiresAt: now()->addDays(7)->toISOString(),
                 invitedBy: $inviter
             ));
 
@@ -100,7 +93,7 @@ class InvitationService
                 'project' => $context['project'],
                 'invitation' => [
                     'token' => $invitationToken,
-                    'expires_at' => $expiresAt,
+                    'expires_at' => now()->addDays(7),
                 ],
             ];
         });
@@ -113,8 +106,7 @@ class InvitationService
         User $inviter,
         ?string $role,
         ?string $orgAdminId,
-        ?string $projectManagerId,
-        ?string $memberId
+        ?string $projectManagerId
     ): array {
         // Super Admin with Manager Assignment
         if ($inviter->isSuperAdmin()) {
@@ -223,17 +215,11 @@ class InvitationService
         // Project Manager
         if ($inviter->isProjectManager()) {
             // Auto-detect project
-            $projectsCount = $inviter->projects()->count();
+            $project = $inviter->projects()->first();
 
-            if ($projectsCount === 0) {
+            if ($project === null) {
                 throw new \RuntimeException('You are not assigned to any projects.');
             }
-
-            if ($projectsCount > 1 && $memberId === null) {
-                throw new \RuntimeException('You must specify member_id when you manage multiple projects.');
-            }
-
-            $project = $inviter->projects()->first();
 
             /** @var Organization|null $organization */
             $organization = $project->organization;
@@ -242,31 +228,11 @@ class InvitationService
                 throw new \RuntimeException('Project does not belong to any organization.');
             }
 
-            // If member_id provided, assign under that member (team lead scenario)
-            $assignedBy = $memberId ?? $inviter->id;
-
-            if ($memberId !== null) {
-                $member = User::findOrFail($memberId);
-
-                if (! $member->isMember()) {
-                    throw new \RuntimeException('Specified user is not a Member.');
-                }
-
-                // Verify member is in same project
-                $isMemberInProject = $project->users()->where('users.id', $member->id)->exists();
-
-                if (! $isMemberInProject) {
-                    throw new \RuntimeException('Member must belong to your project.');
-                }
-
-                $assignedBy = $member->id;
-            }
-
             return [
                 'role' => UserRole::MEMBER->value, // PM can only invite Members
                 'organization' => $organization,
                 'project' => $project,
-                'assigned_by' => $assignedBy, // PM or specific member
+                'assigned_by' => $inviter->id,
             ];
         }
 

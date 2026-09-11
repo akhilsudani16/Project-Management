@@ -15,6 +15,11 @@ class Taggable extends Pivot
 
     protected $table = 'taggables';
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     // Relationships
     public function tag(): BelongsTo
     {

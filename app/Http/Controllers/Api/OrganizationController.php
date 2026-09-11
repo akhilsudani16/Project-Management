@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\OrganizationUserStatus;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Organization\StoreOrganizationRequest;
@@ -137,7 +138,7 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Update organization member.
+     * Update organization member (role or status).
      */
     public function updateMember(
         Request $request,
@@ -147,16 +148,34 @@ class OrganizationController extends Controller
         $this->authorize('updateMember', [$organization, $user]);
 
         $request->validate([
-            'role' => ['required', 'string', 'in:organization_admin,project_manager,member'],
+            'role' => ['nullable', 'string', 'in:organization_admin,project_manager,member'],
+            'status' => ['nullable', 'string', 'in:active,pending,rejected'],
         ]);
 
-        $updated = $this->organizationService->updateMemberRole(
-            organization: $organization,
-            user: $user,
-            newRoleName: $request->input('role'),
-        );
+        // Update role if provided
+        if ($request->has('role')) {
+            $user = $this->organizationService->updateMemberRole(
+                organization: $organization,
+                user: $user,
+                newRoleName: $request->input('role'),
+            );
+        }
 
-        return (new UserResource($updated))
+        // Update organization membership status if provided
+        if ($request->has('status')) {
+            $statusValue = match ($request->input('status')) {
+                'active' => OrganizationUserStatus::ACTIVE->value,
+                'pending' => OrganizationUserStatus::PENDING->value,
+                'rejected' => OrganizationUserStatus::REJECTED->value,
+            };
+
+            $organization->members()->updateExistingPivot($user->id, [
+                'status' => $statusValue,
+                'accepted_at' => $statusValue === OrganizationUserStatus::ACTIVE->value ? now() : null,
+            ]);
+        }
+
+        return (new UserResource($user->fresh()))
             ->withMessage(__('organization.member_updated_successfully'))
             ->toResponse($request);
     }

@@ -39,8 +39,7 @@ class InvitationController extends Controller
                 name: $request->input('name'),
                 role: $request->input('role'),
                 orgAdminId: $request->input('org_admin_id'),
-                projectManagerId: $request->input('project_manager_id'),
-                memberId: $request->input('member_id'),
+                projectManagerId: $request->input('project_manager_id')
             );
 
             return ApiResponse::success(
@@ -79,7 +78,7 @@ class InvitationController extends Controller
     public function verifyToken(Request $request): JsonResponse
     {
         $request->validate([
-            'token' => ['required', 'string', 'min:60', 'max:60'],
+            'token' => ['required', 'string'],
         ]);
 
         try {

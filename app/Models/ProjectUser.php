@@ -22,6 +22,13 @@ class ProjectUser extends Pivot
         'accepted_at' => 'datetime',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     // Relationships
     public function project(): BelongsTo
     {

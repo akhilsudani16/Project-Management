@@ -29,6 +29,13 @@ class Attachment extends Model
     /** @use HasFactory<AttachmentFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     public function attachable(): MorphTo
     {
         return $this->morphTo();

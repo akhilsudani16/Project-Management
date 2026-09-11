@@ -29,6 +29,13 @@ class Tag extends Model
 
     protected $table = 'tag';
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     // Relationships
     public function organization(): BelongsTo
     {

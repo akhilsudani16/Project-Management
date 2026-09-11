@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('logout', [LogoutController::class, 'logout'])->name('logout');
     Route::post('logout-all', [LogoutAllController::class, 'logoutAll'])->name('logout.all');
-    Route::post('invite', [InvitationController::class, 'invite'])->name('invite.store');
+    Route::post('invite', [InvitationController::class, 'invite'])->name('invite.store'); // pending
     Route::post('restore', [RestoreController::class, 'restore'])->name('restore');
 
     Route::apiResource('organizations', OrganizationController::class);

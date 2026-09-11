@@ -27,6 +27,13 @@ class Project extends Model
         'status' => ProjectStatus::class,
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     // Relationships
     public function organization(): BelongsTo
     {

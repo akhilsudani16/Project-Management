@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\OrganizationUserStatus;
 use App\Enums\ProjectStatus;
 use App\Models\Organization;
 use App\Models\Project;
@@ -174,6 +175,7 @@ class ProjectService
 
     /**
      * Assign user to project.
+     * Also activates organization membership if pending.
      */
     public function assignUser(Project $project, User $user, User $assignedBy): bool
     {
@@ -201,6 +203,14 @@ class ProjectService
             'invited_at' => now(),
             'accepted_at' => now(), // Auto-accept for direct assignment
         ]);
+
+        // Activate organization membership if still pending
+        $pivotData = $organization->members()->where('users.id', $user->id)->first();
+        if ($pivotData && $pivotData->pivot->status === OrganizationUserStatus::PENDING->value) {
+            $organization->members()->updateExistingPivot($user->id, [
+                'status' => OrganizationUserStatus::ACTIVE->value,
+            ]);
+        }
 
         return true;
     }

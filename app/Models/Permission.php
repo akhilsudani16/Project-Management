@@ -15,6 +15,11 @@ class Permission extends Model
     /** @use HasFactory<PermissionFactory> */
     use HasFactory, HasUuids;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     // Relationships
     public function roles(): BelongsToMany
     {

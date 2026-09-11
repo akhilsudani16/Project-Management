@@ -19,8 +19,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'role_id', 'password', 'must_change_password', 'status', 'bio', 'phone', 'job_title', 'location', 'avatar_path', 'failed_login_attempts', 'lockout_until', 'created_by', 'assigned_by', 'deleted_by'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable(['name', 'email', 'role_id', 'password', 'must_change_password', 'status', 'bio', 'phone', 'job_title', 'location', 'avatar_path', 'failed_login_attempts', 'lockout_until', 'created_by', 'assigned_by', 'deleted_by', 'invitation_token', 'invitation_accepted_at'])]
+#[Hidden(['password', 'remember_token', 'created_at', 'updated_at', 'deleted_at', 'email_verified_at'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
@@ -40,6 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'lockout_until' => 'datetime',
             'failed_login_attempts' => 'integer',
             'status' => UserStatus::class,
+            'invitation_accepted_at' => 'datetime',
         ];
     }
 

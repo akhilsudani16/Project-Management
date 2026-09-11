@@ -34,6 +34,9 @@ return new class extends Migration
             $table->uuid('assigned_by')->nullable();
             $table->uuid('deleted_by')->nullable();
 
+            $table->string('invitation_token')->nullable();
+            $table->timestamp('invitation_accepted_at')->nullable();
+
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
@@ -47,6 +50,7 @@ return new class extends Migration
         DB::statement('CREATE INDEX idx_users_email ON users(email) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX idx_users_status ON users(status) WHERE deleted_at IS NULL');
         DB::statement('CREATE INDEX idx_users_role_id ON users(role_id) WHERE deleted_at IS NULL');
+        DB::statement('CREATE INDEX idx_users_invitation_token ON users(invitation_token) WHERE invitation_token IS NOT NULL');
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

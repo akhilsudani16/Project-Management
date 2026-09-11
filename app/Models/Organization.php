@@ -21,6 +21,16 @@ class Organization extends Model
     /** @use HasFactory<OrganizationFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
+    /**
+     * Attributes that should be hidden for serialization.
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     protected $casts = [
         'status' => OrganizationStatus::class,
     ];

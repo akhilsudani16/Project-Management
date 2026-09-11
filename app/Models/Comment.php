@@ -29,6 +29,13 @@ class Comment extends Model
     /** @use HasFactory<CommentFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+        'deleted_by',
+    ];
+
     public function commentable(): MorphTo
     {
         return $this->morphTo();

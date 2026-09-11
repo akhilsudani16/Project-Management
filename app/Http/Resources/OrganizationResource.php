@@ -14,14 +14,29 @@ class OrganizationResource extends BaseApiResource
 {
     protected function transformData(Request $request): ?object
     {
-        return (object) [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'status' => $this->resource->status?->value,
-            'created_by' => $this->whenLoaded('createdBy', fn () => (new UserResource($this->createdBy))->getData($request)),
-            'members_count' => $this->when(isset($this->members_count), $this->members_count),
-            'projects_count' => $this->when(isset($this->projects_count), $this->projects_count),
-            'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member) => (new UserResource($member))->getData($request))),
+            'created_by' => $this->whenLoaded('createdBy', function () {
+                if ($this->createdBy === null) {
+                    return null;
+                }
+
+                return [
+                    'name' => $this->createdBy->name,
+                    'email' => $this->createdBy->email,
+                ];
+            }),
         ];
+
+        // Only add members if the relationship is loaded
+        if ($this->relationLoaded('members')) {
+            $data['members'] = $this->members->isEmpty()
+                ? null
+                : $this->members->map(fn ($member) => (new UserResource($member))->getData($request))->values()->toArray();
+        }
+
+        return (object) $data;
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Helpers\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -23,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         // Always render JSON responses
         $exceptions->shouldRenderJsonWhen(fn () => true);
+
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            return ApiResponse::unauthorized('Your session has expired. Please login again.');
+        });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) {
             return ApiResponse::unauthorized($e->getMessage() ?: 'This action is unauthorized.');

@@ -34,6 +34,10 @@ class ActivityLog extends Model
         'metadata' => 'array',
     ];
 
+    protected $hidden = [
+        'updated_at',
+    ];
+
     // Relationships
     public function user(): BelongsTo
     {
