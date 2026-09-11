@@ -21,8 +21,6 @@ class TaskResource extends BaseApiResource
             'status' => $this->resource->status?->value,
             'priority' => $this->priority?->value,
             'due_date' => $this->due_date,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
             'project' => $this->whenLoaded('project', fn () => (new ProjectResource($this->project))->getData($request)),
             'assigned_to' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),
             'created_by' => $this->whenLoaded('creator', fn () => (new UserResource($this->creator))->getData($request)),
