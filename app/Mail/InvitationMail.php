@@ -21,7 +21,7 @@ class InvitationMail extends Mailable
      */
     public function __construct(
         public User $user,
-        public Organization $organization,
+        public ?Organization $organization,
         public ?Project $project,
         public string $token,
         public string $expiresAt,
@@ -33,8 +33,12 @@ class InvitationMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $subject = $this->organization
+            ? 'You have been invited to '.$this->organization->name
+            : 'You have been invited';
+
         return new Envelope(
-            subject: 'You have been invited to '.$this->organization->name,
+            subject: $subject,
         );
     }
 

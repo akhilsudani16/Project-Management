@@ -12,7 +12,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class OrganizationService
 {
@@ -195,6 +194,35 @@ class OrganizationService
     }
 
     /**
+     * Assign user to organization.
+     * User must be active (invitation accepted) before assignment.
+     */
+    public function assignUser(Organization $organization, User $user, User $assignedBy): bool
+    {
+        // Check if user is already assigned
+        if ($organization->members()->where('users.id', $user->id)->exists()) {
+            throw new \RuntimeException(__('organization.user_already_assigned'));
+        }
+
+        // Check if user is active
+        if ($user->status !== UserStatus::ACTIVE->value) {
+            throw new \RuntimeException(__('organization.user_must_be_active'));
+        }
+
+        return DB::transaction(function () use ($organization, $user, $assignedBy) {
+            // Attach user to organization with active status
+            $organization->members()->attach($user->id, [
+                'status' => OrganizationUserStatus::ACTIVE->value,
+                'invited_by' => $assignedBy->id,
+                'invited_at' => now(),
+                'accepted_at' => now(),
+            ]);
+
+            return true;
+        });
+    }
+
+    /**
      * Update organization member role.
      */
     public function updateMemberRole(
@@ -228,91 +256,6 @@ class OrganizationService
             ]);
 
             return true;
-        });
-    }
-
-    /**
-     * Verify invitation token - Simple direct lookup.
-     */
-    public function verifyInvitationToken(string $token): array
-    {
-        $user = User::where('invitation_token', hash('sha256', $token))
-            ->whereNull('invitation_accepted_at')
-            ->first();
-
-        if (! $user) {
-            throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
-        }
-
-        // Get pending organization
-        $organization = $user->organizations()
-            ->wherePivot('status', OrganizationUserStatus::PENDING->value)
-            ->first();
-
-        if (! $organization) {
-            throw new \RuntimeException(__('organization.no_pending_invitations'));
-        }
-
-        return [
-            'valid' => true,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role->name,
-            ],
-            'organization' => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-            ],
-            'expires_at' => now()->addDays(7)->toISOString(), // 7 days from creation
-        ];
-    }
-
-    /**
-     * Accept invitation and set password - Simple direct lookup.
-     * Organization remains PENDING until assigned to project/org.
-     */
-    public function acceptInvitationWithPassword(
-        string $token,
-        string $password
-    ): array {
-        return DB::transaction(function () use ($token, $password) {
-            // Step 1: Find user by token
-            $user = User::where('invitation_token', hash('sha256', $token))
-                ->whereNull('invitation_accepted_at')
-                ->firstOrFail();
-
-            // Step 2: Get pending organization
-            $organization = $user->organizations()
-                ->wherePivot('status', OrganizationUserStatus::PENDING->value)
-                ->first();
-
-            if (! $organization) {
-                throw new \RuntimeException(__('organization.no_pending_invitations'));
-            }
-
-            // Step 3: Update user - set password and activate USER only
-            $user->update([
-                'password' => Hash::make($password),
-                'email_verified_at' => now(),
-                'status' => UserStatus::ACTIVE->value,
-                'must_change_password' => false,
-                'invitation_token' => null, // Clear token
-                'invitation_accepted_at' => now(), // Mark as accepted
-            ]);
-
-            // Step 4: Update organization membership - mark invitation as accepted
-            // BUT keep status as PENDING until project/org assignment
-            $organization->members()->updateExistingPivot($user->id, [
-                'accepted_at' => now(), // Mark as accepted
-                // status remains PENDING - will be activated when assigned to project/org
-            ]);
-
-            return [
-                'user' => $user->fresh()->load('role'),
-                'organization' => $organization,
-            ];
         });
     }
 

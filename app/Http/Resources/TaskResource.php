@@ -22,8 +22,6 @@ class TaskResource extends BaseApiResource
             'priority' => $this->priority?->value,
             'due_date' => $this->due_date,
             'project' => $this->whenLoaded('project', fn () => (new ProjectResource($this->project))->getData($request)),
-            'assigned_to' => $this->whenLoaded('user', fn () => (new UserResource($this->user))->getData($request)),
-            'created_by' => $this->whenLoaded('creator', fn () => (new UserResource($this->creator))->getData($request)),
             'comments' => $this->whenLoaded('comments', fn () => $this->comments->map(fn ($comment) => (new CommentResource($comment))->getData($request))),
             'tags' => $this->whenLoaded('tags', fn () => $this->tags->map(fn ($tag) => (new TagResource($tag))->getData($request))),
             'attachments' => $this->whenLoaded('attachments', fn () => $this->attachments->map(fn ($attachment) => (new AttachmentResource($attachment))->getData($request))),

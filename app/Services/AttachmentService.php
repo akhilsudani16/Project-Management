@@ -28,8 +28,8 @@ class AttachmentService
         $fileName = pathinfo($originalName, PATHINFO_FILENAME);
         $uniqueFileName = Str::slug($fileName).'-'.Str::random(8).'.'.$extension;
 
-        // Store file in attachments directory
-        $path = $file->storeAs('attachments', $uniqueFileName, 'private');
+        // Store file in attachments disk (public/attachments/)
+        $path = $file->storeAs('', $uniqueFileName, 'attachments');
 
         // Create attachment record
         $attachment = Attachment::create([
@@ -48,7 +48,7 @@ class AttachmentService
     public function download(Attachment $attachment): StreamedResponse
     {
         // Check if file exists
-        if (! Storage::disk('private')->exists($attachment->path)) {
+        if (! Storage::disk('attachments')->exists($attachment->path)) {
             abort(404, 'File not found.');
         }
 
@@ -56,7 +56,7 @@ class AttachmentService
         $fileName = basename($attachment->path);
 
         // Return file download response
-        return Storage::disk('private')->download(
+        return Storage::disk('attachments')->download(
             $attachment->path,
             $fileName
         );
@@ -68,8 +68,8 @@ class AttachmentService
     public function delete(Attachment $attachment, User $deletedBy): void
     {
         // Delete physical file
-        if (Storage::disk('private')->exists($attachment->path)) {
-            Storage::disk('private')->delete($attachment->path);
+        if (Storage::disk('attachments')->exists($attachment->path)) {
+            Storage::disk('attachments')->delete($attachment->path);
         }
 
         // Soft delete record

@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('organizations/{organization}')->group(function () {
         Route::prefix('users')->group(function () {
             Route::get('/', [OrganizationController::class, 'members'])->name('organizations.users');
+            Route::post('/', [OrganizationController::class, 'assignUser'])->name('organizations.users.assign');
             Route::patch('{user}', [OrganizationController::class, 'updateMember'])->name('organizations.users.update');
             Route::delete('{user}', [OrganizationController::class, 'removeMember'])->name('organizations.users.remove');
         });

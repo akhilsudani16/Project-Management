@@ -15,6 +15,7 @@ return [
     'unassigned_successfully' => 'Task unassigned successfully.',
     'no_access_to_project' => 'You do not have access to this project.',
     'assignee_no_access_to_project' => 'Assignee does not have access to this project.',
+    'user_already_assigned' => 'User is already assigned to this task.',
     'invalid_project' => 'Invalid project.',
     'list_retrieved' => 'Tasks retrieved successfully.',
 ];

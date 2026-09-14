@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\OrganizationUserStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Mail\InvitationMail;
-use App\Models\Organization;
-use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +17,11 @@ use Illuminate\Support\Str;
 class InvitationService
 {
     /**
-     * Unified invite method with manager-based assignment.
+     * Simplified invite method - creates user and sends email.
+     * Stores who this user is assigned under (org_admin or project_manager) for reference.
+     * Does NOT assign to organization or project yet - that happens via separate APIs.
+     *
+     * Note: Validation is done in InviteRequest, not here.
      */
     public function invite(
         User $inviter,
@@ -31,66 +32,43 @@ class InvitationService
         ?string $projectManagerId = null
     ): array {
         return DB::transaction(function () use ($inviter, $email, $name, $role, $orgAdminId, $projectManagerId) {
-            // Step 1: Determine context based on inviter role and manager assignment
-            $context = $this->determineInvitationContext(
-                inviter: $inviter,
-                role: $role,
-                orgAdminId: $orgAdminId,
-                projectManagerId: $projectManagerId
-            );
+            // Step 1: Determine final role (Request already validated permissions)
+            $finalRole = $this->determineFinalRole($inviter, $role);
 
-            // Step 2: Validate permissions
-            $this->validateInviterPermissions($inviter, $context);
+            // Step 2: Determine who this user is assigned under
+            $assignedBy = $this->determineAssignedBy($inviter, $orgAdminId, $projectManagerId);
 
             // Step 3: Find or create user
             $user = $this->findOrCreateUser(
                 email: $email,
                 name: $name,
-                roleName: $context['role'],
+                roleName: $finalRole,
                 invitedBy: $inviter,
-                assignedBy: $context['assigned_by']
+                assignedBy: $assignedBy
             );
 
-            // Step 4: Add to organization
-            $this->addToOrganization(
-                user: $user,
-                organization: $context['organization'],
-                invitedBy: $inviter
-            );
+            // Step 4: Generate invitation token (hashed once)
+            $invitationToken = hash('sha256', Str::random(60));
 
-            // Step 5: Add to project (if specified)
-            if ($context['project'] !== null) {
-                $this->addToProject(
-                    user: $user,
-                    project: $context['project'],
-                    invitedBy: $inviter,
-                    assignedBy: $context['assigned_by']
-                );
-            }
-
-            // Step 6: Generate invitation token and store in user table
-            $invitationToken = Str::random(60);
-
-            // Store hashed token directly in user table
+            // Store token in user table
             $user->update([
-                'invitation_token' => hash('sha256', $invitationToken),
+                'invitation_token' => $invitationToken,
                 'invitation_accepted_at' => null, // Reset if re-inviting
             ]);
 
-            // Send invitation email
+            // Step 5: Send invitation email (send same hashed token)
             Mail::to($user->email)->send(new InvitationMail(
                 user: $user,
-                organization: $context['organization'],
-                project: $context['project'],
-                token: $invitationToken, // Send plain token in email
+                organization: null, // Will be assigned later
+                project: null, // Will be assigned later
+                token: $invitationToken, // Send hashed token
                 expiresAt: now()->addDays(7)->toISOString(),
                 invitedBy: $inviter
             ));
 
             return [
                 'user' => $user->fresh()->load('role'),
-                'organization' => $context['organization'],
-                'project' => $context['project'],
+                'assigned_under' => $assignedBy, // Track who user is under
                 'invitation' => [
                     'token' => $invitationToken,
                     'expires_at' => now()->addDays(7),
@@ -100,184 +78,134 @@ class InvitationService
     }
 
     /**
-     * Determine invitation context based on inviter role.
+     * Determine final role based on inviter and requested role.
+     * Request validation already ensures role is allowed for this inviter.
      */
-    private function determineInvitationContext(
-        User $inviter,
-        ?string $role,
-        ?string $orgAdminId,
-        ?string $projectManagerId
-    ): array {
-        // Super Admin with Manager Assignment
+    private function determineFinalRole(User $inviter, ?string $role): string
+    {
+        // PM can only create members (enforced by Request validation)
+        if ($inviter->isProjectManager()) {
+            return UserRole::MEMBER->value;
+        }
+
+        // Use requested role or default to member
+        return $role ?? UserRole::MEMBER->value;
+    }
+
+    /**
+     * Verify invitation token is valid.
+     * This is for UI to show user info before they accept.
+     */
+    public function verifyToken(string $token): array
+    {
+        $user = User::where('invitation_token', $token)
+            ->whereNull('invitation_accepted_at')
+            ->first();
+
+        if (! $user) {
+            throw new \RuntimeException(__('organization.invalid_or_expired_invitation'));
+        }
+
+        // Check if token is expired (7 days from user creation)
+        if ($user->created_at->addDays(7)->isPast()) {
+            throw new \RuntimeException(__('organization.invitation_expired'));
+        }
+
+        return [
+            'valid' => true,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role->name,
+            ],
+            'expires_at' => $user->created_at->addDays(7)->toISOString(),
+        ];
+    }
+
+    /**
+     * Accept invitation and set password.
+     * User becomes active after this.
+     */
+    public function acceptInvitation(string $token, string $password): array
+    {
+        return DB::transaction(function () use ($token, $password) {
+            // Step 1: Find user by token
+            $user = User::where('invitation_token', $token)
+                ->whereNull('invitation_accepted_at')
+                ->firstOrFail();
+
+            // Step 2: Check if token is expired (7 days from user creation)
+            if ($user->created_at->addDays(7)->isPast()) {
+                throw new \RuntimeException(__('organization.invitation_expired'));
+            }
+
+            // Step 3: Update user - set password and activate USER
+            $user->update([
+                'password' => Hash::make($password),
+                'email_verified_at' => now(),
+                'status' => UserStatus::ACTIVE->value,
+                'must_change_password' => false,
+                'invitation_token' => null, // Clear token
+                'invitation_accepted_at' => now(), // Mark as accepted
+            ]);
+
+            return [
+                'user' => $user->fresh()->load('role'),
+            ];
+        });
+    }
+
+    /**
+     * Determine who this user is assigned under (for tracking only, not actual assignment).
+     */
+    private function determineAssignedBy(User $inviter, ?string $orgAdminId, ?string $projectManagerId): ?string
+    {
+        // Super Admin explicitly provides who user is under
         if ($inviter->isSuperAdmin()) {
-            // Assign to Org Admin
             if ($orgAdminId !== null) {
                 $orgAdmin = User::findOrFail($orgAdminId);
-
                 if (! $orgAdmin->isOrgAdmin()) {
                     throw new \RuntimeException('Specified user is not an Organization Admin.');
                 }
 
-                $organization = $orgAdmin->organizations()
-                    ->wherePivot('status', OrganizationUserStatus::ACTIVE->value)
-                    ->first();
-
-                if ($organization === null) {
-                    throw new \RuntimeException('Organization Admin is not assigned to any active organization.');
-                }
-
-                return [
-                    'role' => $role ?? UserRole::MEMBER->value,
-                    'organization' => $organization,
-                    'project' => null,
-                    'assigned_by' => $orgAdmin->id,
-                ];
+                return $orgAdmin->id;
             }
 
-            // Assign to Project Manager
             if ($projectManagerId !== null) {
-                $projectManager = User::findOrFail($projectManagerId);
-
-                if (! $projectManager->isProjectManager()) {
+                $pm = User::findOrFail($projectManagerId);
+                if (! $pm->isProjectManager()) {
                     throw new \RuntimeException('Specified user is not a Project Manager.');
                 }
 
-                $project = $projectManager->projects()->first();
-
-                if ($project === null) {
-                    throw new \RuntimeException('Project Manager is not assigned to any project.');
-                }
-
-                $organization = $project->organization;
-
-                if ($organization === null) {
-                    throw new \RuntimeException('Project does not belong to any organization.');
-                }
-
-                return [
-                    'role' => UserRole::MEMBER->value, // Can only be member under PM
-                    'organization' => $organization,
-                    'project' => $project,
-                    'assigned_by' => $projectManager->id,
-                ];
+                return $pm->id;
             }
 
-            throw new \RuntimeException('You must specify org_admin_id or project_manager_id.');
+            // No ID provided - user will be directly under Super Admin
+            return null;
         }
 
-        // Organization Admin
+        // Org Admin invites - user can be under a PM or directly under Org Admin
         if ($inviter->isOrgAdmin()) {
-            // Auto-detect organization from inviter's membership
-            $organization = $inviter->organizations()
-                ->wherePivot('status', OrganizationUserStatus::ACTIVE->value)
-                ->first();
-
-            if ($organization === null) {
-                throw new \RuntimeException('You are not assigned to any active organization.');
-            }
-
-            // Assign to Project Manager
             if ($projectManagerId !== null) {
-                $projectManager = User::findOrFail($projectManagerId);
-
-                if (! $projectManager->isProjectManager()) {
+                $pm = User::findOrFail($projectManagerId);
+                if (! $pm->isProjectManager()) {
                     throw new \RuntimeException('Specified user is not a Project Manager.');
                 }
 
-                // Verify PM belongs to same organization
-                $pmOrg = $projectManager->organizations()
-                    ->wherePivot('status', OrganizationUserStatus::ACTIVE->value)
-                    ->first();
-
-                if ($pmOrg === null || $pmOrg->id !== $organization->id) {
-                    throw new \RuntimeException('Project Manager must belong to your organization.');
-                }
-
-                $project = $projectManager->projects()->first();
-
-                return [
-                    'role' => $role ?? UserRole::MEMBER->value,
-                    'organization' => $organization,
-                    'project' => $project,
-                    'assigned_by' => $projectManager->id,
-                ];
+                return $pm->id;
             }
 
-            // Assign to Member (no specific manager)
-            return [
-                'role' => $role ?? UserRole::MEMBER->value,
-                'organization' => $organization,
-                'project' => null,
-                'assigned_by' => $inviter->id,
-            ];
+            // User is directly under Org Admin
+            return $inviter->id;
         }
 
-        // Project Manager
+        // PM invites - user is under the PM
         if ($inviter->isProjectManager()) {
-            // Auto-detect project
-            $project = $inviter->projects()->first();
-
-            if ($project === null) {
-                throw new \RuntimeException('You are not assigned to any projects.');
-            }
-
-            /** @var Organization|null $organization */
-            $organization = $project->organization;
-
-            if ($organization === null) {
-                throw new \RuntimeException('Project does not belong to any organization.');
-            }
-
-            return [
-                'role' => UserRole::MEMBER->value, // PM can only invite Members
-                'organization' => $organization,
-                'project' => $project,
-                'assigned_by' => $inviter->id,
-            ];
+            return $inviter->id;
         }
 
-        throw new \RuntimeException('You are not authorized to invite users.');
-    }
-
-    /**
-     * Validate inviter permissions.
-     */
-    private function validateInviterPermissions(User $inviter, array $context): void
-    {
-        // Super Admin can invite anyone
-        if ($inviter->isSuperAdmin()) {
-            return;
-        }
-
-        // Org Admin can only invite PM or Member
-        if ($inviter->isOrgAdmin()) {
-            if (! in_array($context['role'], [UserRole::PROJECT_MANAGER->value, UserRole::MEMBER->value], true)) {
-                throw new \RuntimeException('Organization Admins can only invite Project Managers or Members.');
-            }
-
-            // Verify org admin has access to this organization
-            if (! $inviter->hasAccessToOrganization($context['organization'])) {
-                throw new \RuntimeException('You do not have access to this organization.');
-            }
-
-            return;
-        }
-
-        // PM can only invite Member
-        if ($inviter->isProjectManager()) {
-            if ($context['role'] !== UserRole::MEMBER->value) {
-                throw new \RuntimeException('Project Managers can only invite Members.');
-            }
-
-            // Verify PM has access to this project
-            if ($context['project'] !== null && ! $inviter->hasAccessToProject($context['project'])) {
-                throw new \RuntimeException('You do not have access to this project.');
-            }
-
-            return;
-        }
-
-        throw new \RuntimeException('You are not authorized to invite users.');
+        return null;
     }
 
     /**
@@ -303,83 +231,10 @@ class InvitationService
                 'status' => UserStatus::PENDING->value,
                 'must_change_password' => true,
                 'created_by' => $invitedBy->id,
-                'assigned_by' => $assignedBy, // Track who this user is assigned to
+                'assigned_by' => $assignedBy, // Track who user is under
             ]);
         }
 
         return $user;
-    }
-
-    /**
-     * Add user to organization.
-     */
-    private function addToOrganization(
-        User $user,
-        Organization $organization,
-        User $invitedBy
-    ): void {
-        $existingMembership = $organization->members()
-            ->where('users.id', $user->id)
-            ->first();
-
-        if ($existingMembership !== null) {
-            /** @phpstan-ignore-next-line */
-            $pivotStatus = $existingMembership->pivot->status;
-
-            if ($pivotStatus === OrganizationUserStatus::ACTIVE->value) {
-                throw new \RuntimeException('User is already an active member of this organization.');
-            }
-
-            // Resend invitation if pending or rejected
-            $organization->members()->updateExistingPivot($user->id, [
-                'status' => OrganizationUserStatus::PENDING->value,
-                'invited_by' => $invitedBy->id,
-                'invited_at' => now(),
-                'accepted_at' => null,
-            ]);
-        } else {
-            // Create new organization membership
-            $organization->members()->attach($user->id, [
-                'id' => Str::uuid(),
-                'status' => OrganizationUserStatus::PENDING->value,
-                'invited_by' => $invitedBy->id,
-                'invited_at' => now(),
-            ]);
-        }
-    }
-
-    /**
-     * Add user to project.
-     */
-    private function addToProject(
-        User $user,
-        Project $project,
-        User $invitedBy,
-        ?string $assignedBy = null
-    ): void {
-        $existingAssignment = $project->users()
-            ->where('users.id', $user->id)
-            ->first();
-
-        if ($existingAssignment !== null) {
-            // Update existing assignment
-            $project->users()->updateExistingPivot($user->id, [
-                'assigned_by' => $assignedBy ?? $invitedBy->id,
-                'assigned_at' => now(),
-                'invitation_token' => Str::random(60),
-                'invited_by' => $invitedBy->id,
-                'invited_at' => now(),
-            ]);
-        } else {
-            // Create new project assignment
-            $project->users()->attach($user->id, [
-                'id' => Str::uuid(),
-                'assigned_by' => $assignedBy ?? $invitedBy->id,
-                'assigned_at' => now(),
-                'invitation_token' => Str::random(60),
-                'invited_by' => $invitedBy->id,
-                'invited_at' => now(),
-            ]);
-        }
     }
 }

@@ -27,6 +27,7 @@ class UserResource extends BaseApiResource
         // Minimal response (for login, quick lists)
         if ($this->minimal) {
             return (object) [
+                'id' => $this->resource->id,
                 'name' => $this->resource->name,
                 'email' => $this->resource->email,
                 'role' => $this->resource->role?->name,
@@ -35,6 +36,7 @@ class UserResource extends BaseApiResource
 
         // Full response (for profile, detailed views)
         return (object) [
+            'id' => $this->resource->id,
             'name' => $this->resource->name,
             'email' => $this->resource->email,
             'phone' => $this->resource->phone,
@@ -43,6 +45,7 @@ class UserResource extends BaseApiResource
             'avatar_path' => $this->resource->avatar_path,
             'bio' => $this->resource->bio,
             'role' => (object) [
+                'id' => $this->resource->role?->id,
                 'name' => $this->resource->role?->name,
             ],
         ];

@@ -138,6 +138,37 @@ class OrganizationController extends Controller
     }
 
     /**
+     * Assign user to organization.
+     */
+    public function assignUser(Request $request, Organization $organization): JsonResponse
+    {
+        $this->authorize('assignMembers', $organization);
+
+        $request->validate([
+            'user_id' => ['required', 'uuid', 'exists:users,id'],
+        ]);
+
+        $user = User::findOrFail($request->input('user_id'));
+
+        try {
+            $this->organizationService->assignUser(
+                organization: $organization,
+                user: $user,
+                assignedBy: $request->user(),
+            );
+
+            return (new UserResource($user->fresh()))
+                ->withMessage(__('organization.user_assigned_successfully'))
+                ->toResponse($request);
+        } catch (\RuntimeException $e) {
+            return ApiResponse::fail(
+                message: $e->getMessage(),
+                statusCode: 422
+            );
+        }
+    }
+
+    /**
      * Update organization member (role or status).
      */
     public function updateMember(

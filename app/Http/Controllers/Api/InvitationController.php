@@ -8,10 +8,8 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Http\Requests\InviteRequest;
-use App\Http\Resources\OrganizationResource;
 use App\Http\Resources\UserResource;
 use App\Services\InvitationService;
-use App\Services\OrganizationService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,15 +18,11 @@ class InvitationController extends Controller
 {
     public function __construct(
         private readonly InvitationService $invitationService,
-        private readonly OrganizationService $organizationService,
     ) {}
 
     /**
-     * Unified invitation endpoint with manager-based assignment.
-     *
-     * Super Admin: Must provide org_admin_id OR project_manager_id
-     * Org Admin: Can provide project_manager_id to assign under PM, org auto-detected
-     * PM: Can provide member_id to assign under specific member (team lead)
+     * Simplified invitation endpoint - creates user, stores reference, sends email.
+     * Does NOT assign to organization/project yet - that happens via separate APIs.
      */
     public function invite(InviteRequest $request): JsonResponse
     {
@@ -45,8 +39,7 @@ class InvitationController extends Controller
             return ApiResponse::success(
                 data: [
                     'user' => (new UserResource($result['user']))->getData($request),
-                    'organization' => $result['organization'],
-                    'project' => $result['project'],
+                    'assigned_under' => $result['assigned_under'],
                     'invitation' => $result['invitation'],
                 ],
                 message: __('organization.invitation_sent_successfully'),
@@ -82,7 +75,7 @@ class InvitationController extends Controller
         ]);
 
         try {
-            $result = $this->organizationService->verifyInvitationToken(
+            $result = $this->invitationService->verifyToken(
                 token: $request->input('token')
             );
 
@@ -107,7 +100,7 @@ class InvitationController extends Controller
     public function acceptInvitation(AcceptInvitationRequest $request): JsonResponse
     {
         try {
-            $result = $this->organizationService->acceptInvitationWithPassword(
+            $result = $this->invitationService->acceptInvitation(
                 token: $request->input('token'),
                 password: $request->input('password'),
             );
@@ -115,7 +108,6 @@ class InvitationController extends Controller
             return ApiResponse::success(
                 data: [
                     'user' => (new UserResource($result['user']))->getData($request),
-                    'organization' => (new OrganizationResource($result['organization']))->getData($request),
                 ],
                 message: __('organization.invitation_accepted_successfully'),
                 statusCode: 200

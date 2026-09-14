@@ -21,7 +21,7 @@ class AttachmentResource extends BaseApiResource
         return (object) [
             'id' => $this->resource->id,
             'file_name' => $fileName,
-            'path' => $this->resource->path,
+            'path' => \Storage::disk('attachments')->url($this->resource->path),
             'attachable_type' => $this->getShortModelName($this->resource->attachable_type),
             'attachable_id' => $this->resource->attachable_id,
             'user' => $this->when($this->relationLoaded('user'), function () {
@@ -30,7 +30,6 @@ class AttachmentResource extends BaseApiResource
                     'name' => $this->resource->user?->name,
                 ];
             }),
-            'download_url' => route('attachments.download', ['attachment' => $this->resource->id]),
         ];
     }
 }

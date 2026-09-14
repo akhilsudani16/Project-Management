@@ -25,7 +25,7 @@ class TaskService
         ?bool $assignedToMe = null,
         ?string $search = null
     ): LengthAwarePaginator {
-        $query = Task::query()->with(['project', 'user', 'creator']);
+        $query = Task::query()->with(['project']);
 
         // Apply access control
         if (! $user->isSuperAdmin()) {
@@ -81,8 +81,6 @@ class TaskService
     {
         return Task::with([
             'project.organization',
-            'user',
-            'creator',
             'comments.user',
             'tags',
             'attachments',
@@ -173,6 +171,11 @@ class TaskService
             throw new \RuntimeException(__('task.invalid_project'));
         }
 
+        // Check if already assigned to this user
+        if ($task->user_id === $assignee->id) {
+            throw new \RuntimeException(__('task.user_already_assigned'));
+        }
+
         // Verify assignee has access to project
         if (! $assignee->hasAccessToProject($project)) {
             throw new \RuntimeException(__('task.assignee_no_access_to_project'));
@@ -232,7 +235,7 @@ class TaskService
     {
         return Task::where('project_id', $project->id)
             ->where('user_id', $user->id)
-            ->with(['creator', 'project'])
+            ->with(['project'])
             ->orderBy('due_date')
             ->orderBy('priority')
             ->paginate($perPage);

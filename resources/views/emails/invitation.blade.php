@@ -3,7 +3,7 @@
 
 Hello **{{ $user->name }}**,
 
-{{ $invitedBy->name }} has invited you to join **{{ $organization->name }}**@if($project) for the project **{{ $project->name }}**@endif.
+{{ $invitedBy->name }} has invited you to join the platform.
 
 ## Next Steps
 
@@ -13,10 +13,6 @@ Click the button below to accept your invitation and set your password:
 Accept Invitation
 </x-mail::button>
 
-@if($project)
-**Project:** {{ $project->name }}  
-@endif
-**Organization:** {{ $organization->name }}  
 **Invited by:** {{ $invitedBy->name }}
 
 ## Important
@@ -24,6 +20,7 @@ Accept Invitation
 - This invitation will expire on **{{ \Carbon\Carbon::parse($expiresAt)->format('F j, Y \a\t g:i A') }}**
 - The link can only be used once
 - You'll need to set a password when accepting the invitation
+- After setting your password, an administrator will assign you to an organization or project
 
 If you didn't expect this invitation, you can safely ignore this email.
 

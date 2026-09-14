@@ -22,7 +22,6 @@ class ProjectResource extends BaseApiResource
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'organization' => $this->whenLoaded('organization', fn () => (new OrganizationResource($this->organization))->getData($request)),
-            'created_by' => $this->whenLoaded('createdBy', fn () => (new UserResource($this->createdBy))->getData($request)),
             'members_count' => $this->when(isset($this->members_count), $this->members_count),
             'tasks_count' => $this->when(isset($this->tasks_count), $this->tasks_count),
             'members' => $this->whenLoaded('members', fn () => $this->members->map(fn ($member) => (new UserResource($member))->getData($request))),

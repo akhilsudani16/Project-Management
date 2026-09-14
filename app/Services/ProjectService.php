@@ -25,7 +25,7 @@ class ProjectService
         ?string $search = null,
         ?bool $assignedToMe = null
     ): LengthAwarePaginator {
-        $query = Project::query()->with(['organization', 'createdBy']);
+        $query = Project::query()->with(['organization']);
 
         // Filter by access
         if (! $user->isSuperAdmin()) {
@@ -73,7 +73,6 @@ class ProjectService
     {
         return Project::with([
             'organization',
-            'createdBy',
             'members' => function ($query): void {
                 $query->with('role');
             },
