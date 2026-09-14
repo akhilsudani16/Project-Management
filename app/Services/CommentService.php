@@ -30,14 +30,6 @@ class CommentService
     }
 
     /**
-     * Get comment by ID.
-     */
-    public function getById(string $id): Comment
-    {
-        return Comment::with(['user', 'commentable'])->findOrFail($id);
-    }
-
-    /**
      * Create a new comment.
      *
      * @param  Project|Task  $commentable

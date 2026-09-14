@@ -258,36 +258,4 @@ class OrganizationService
             return true;
         });
     }
-
-    /**
-     * Accept organization invitation.
-     */
-    public function acceptInvitation(Organization $organization, User $user): bool
-    {
-        return DB::transaction(function () use ($organization, $user) {
-            $organization->members()->updateExistingPivot($user->id, [
-                'status' => OrganizationUserStatus::ACTIVE->value,
-                'accepted_at' => now(),
-            ]);
-
-            // Update user status to active if pending
-            if ($user->status === UserStatus::PENDING) {
-                $user->update(['status' => UserStatus::ACTIVE]);
-            }
-
-            return true;
-        });
-    }
-
-    /**
-     * Reject organization invitation.
-     */
-    public function rejectInvitation(Organization $organization, User $user): bool
-    {
-        $organization->members()->updateExistingPivot($user->id, [
-            'status' => OrganizationUserStatus::REJECTED->value,
-        ]);
-
-        return true;
-    }
 }

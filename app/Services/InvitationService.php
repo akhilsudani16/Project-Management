@@ -32,22 +32,19 @@ class InvitationService
         ?string $projectManagerId = null
     ): array {
         return DB::transaction(function () use ($inviter, $email, $name, $role, $orgAdminId, $projectManagerId) {
-            // Step 1: Determine final role (Request already validated permissions)
-            $finalRole = $this->determineFinalRole($inviter, $role);
-
-            // Step 2: Determine who this user is assigned under
+            // Step 1: Determine who this user is assigned under
             $assignedBy = $this->determineAssignedBy($inviter, $orgAdminId, $projectManagerId);
 
-            // Step 3: Find or create user
+            // Step 2: Find or create user
             $user = $this->findOrCreateUser(
                 email: $email,
                 name: $name,
-                roleName: $finalRole,
+                roleName: $role ?? UserRole::MEMBER->value, // Default to member if not provided
                 invitedBy: $inviter,
                 assignedBy: $assignedBy
             );
 
-            // Step 4: Generate invitation token (hashed once)
+            // Step 3: Generate invitation token (hashed once)
             $invitationToken = hash('sha256', Str::random(60));
 
             // Store token in user table
@@ -56,7 +53,7 @@ class InvitationService
                 'invitation_accepted_at' => null, // Reset if re-inviting
             ]);
 
-            // Step 5: Send invitation email (send same hashed token)
+            // Step 4: Send invitation email (send same hashed token)
             Mail::to($user->email)->send(new InvitationMail(
                 user: $user,
                 organization: null, // Will be assigned later
@@ -75,21 +72,6 @@ class InvitationService
                 ],
             ];
         });
-    }
-
-    /**
-     * Determine final role based on inviter and requested role.
-     * Request validation already ensures role is allowed for this inviter.
-     */
-    private function determineFinalRole(User $inviter, ?string $role): string
-    {
-        // PM can only create members (enforced by Request validation)
-        if ($inviter->isProjectManager()) {
-            return UserRole::MEMBER->value;
-        }
-
-        // Use requested role or default to member
-        return $role ?? UserRole::MEMBER->value;
     }
 
     /**
@@ -182,7 +164,7 @@ class InvitationService
             }
 
             // No ID provided - user will be directly under Super Admin
-            return null;
+            return $inviter->id;
         }
 
         // Org Admin invites - user can be under a PM or directly under Org Admin
@@ -204,8 +186,7 @@ class InvitationService
         if ($inviter->isProjectManager()) {
             return $inviter->id;
         }
-
-        return null;
+        throw new \RuntimeException('Specified user is not a valid inviter.');
     }
 
     /**
@@ -233,8 +214,10 @@ class InvitationService
                 'created_by' => $invitedBy->id,
                 'assigned_by' => $assignedBy, // Track who user is under
             ]);
-        }
 
-        return $user;
+            return $user;
+        } else {
+            throw new \RuntimeException(__('organization.user_already_active'));
+        }
     }
 }

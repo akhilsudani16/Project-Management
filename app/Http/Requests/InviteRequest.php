@@ -11,10 +11,16 @@ class InviteRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Only Super Admin, Org Admin, and Project Manager can invite users.
      */
     public function authorize(): bool
     {
-        return true; // Authorization handled in controller/service
+        $user = $this->user();
+
+        // Only Super Admin, Org Admin, and Project Manager can invite
+        return $user->isSuperAdmin()
+            || $user->isOrgAdmin()
+            || $user->isProjectManager();
     }
 
     /**

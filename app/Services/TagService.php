@@ -27,14 +27,6 @@ class TagService
     }
 
     /**
-     * Get tag by ID.
-     */
-    public function getById(string $id): Tag
-    {
-        return Tag::with(['organization'])->findOrFail($id);
-    }
-
-    /**
      * Create a new tag.
      * Optionally attach to a taggable resource (Project/Task) during creation.
      */

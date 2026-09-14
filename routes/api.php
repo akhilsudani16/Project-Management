@@ -42,13 +42,13 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('sessions')->group(function () {
-        Route::get('/', [SessionController::class, 'index'])->name('sessions.index'); // done
-        Route::delete('{tokenId}', [SessionController::class, 'destroy'])->name('sessions.destroy'); // done
+        Route::get('/', [SessionController::class, 'index'])->name('sessions.index');
+        Route::delete('{tokenId}', [SessionController::class, 'destroy'])->name('sessions.destroy');
     });
 
     Route::post('logout', [LogoutController::class, 'logout'])->name('logout');
     Route::post('logout-all', [LogoutAllController::class, 'logoutAll'])->name('logout.all');
-    Route::post('invite', [InvitationController::class, 'invite'])->name('invite.store'); // pending
+    Route::post('invite', [InvitationController::class, 'invite'])->name('invite.store');
     Route::post('restore', [RestoreController::class, 'restore'])->name('restore');
 
     Route::apiResource('organizations', OrganizationController::class);
