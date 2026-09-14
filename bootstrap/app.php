@@ -35,14 +35,47 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) {
             $model = class_basename($e->getModel());
-            $resourceName = strtolower($model);
 
-            return ApiResponse::notFound(__('api.resource_not_found', ['resource' => $resourceName]));
+            // User-friendly resource names
+            $resourceMap = [
+                'Organization' => 'Organization',
+                'Project' => 'Project',
+                'Task' => 'Task',
+                'User' => 'User',
+                'Comment' => 'Comment',
+                'Tag' => 'Tag',
+                'Attachment' => 'Attachment',
+                'Role' => 'Role',
+                'Permission' => 'Permission',
+            ];
+
+            $resourceName = $resourceMap[$model] ?? $model;
+
+            return ApiResponse::notFound("{$resourceName} not found.");
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            // route not found
-            return ApiResponse::notFound(__('api.route_not_found'));
+            // Check if it's a route not found vs model binding failure
+            if ($e->getPrevious() instanceof ModelNotFoundException) {
+                $model = class_basename($e->getPrevious()->getModel());
+
+                $resourceMap = [
+                    'Organization' => 'Organization',
+                    'Project' => 'Project',
+                    'Task' => 'Task',
+                    'User' => 'User',
+                    'Comment' => 'Comment',
+                    'Tag' => 'Tag',
+                    'Attachment' => 'Attachment',
+                ];
+
+                $resourceName = $resourceMap[$model] ?? $model;
+
+                return ApiResponse::notFound("{$resourceName} not found.");
+            }
+
+            // Route not found
+            return ApiResponse::notFound('Endpoint not found.');
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) {
